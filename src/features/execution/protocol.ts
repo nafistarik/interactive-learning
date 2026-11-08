@@ -1,4 +1,5 @@
 import type { PythonRunResult } from "@/lib/python/run-python";
+import type { ValidationCheck, ValidationOutcome, ValidationRun } from "@/features/validation/types";
 
 import type { RecordingOutcome } from "./frames";
 
@@ -9,12 +10,20 @@ export type LoadStage = "runtime" | "numpy" | "ready";
 export type WorkerRequest =
   | { kind: "load" }
   | { kind: "run"; id: number; code: string }
-  | { kind: "record"; id: number; code: string; prelude: string };
+  | { kind: "record"; id: number; code: string; prelude: string }
+  | {
+      kind: "validate";
+      id: number;
+      code: string;
+      runs: ValidationRun[];
+      checks: ValidationCheck[];
+    };
 
 /** The finished result of one request, tagged with what was asked for. */
 export type WorkerOutcome =
   | { kind: "run"; result: PythonRunResult }
-  | { kind: "record"; recording: RecordingOutcome };
+  | { kind: "record"; recording: RecordingOutcome }
+  | { kind: "validate"; validation: ValidationOutcome };
 
 /** Messages the Python worker sends back to the page. */
 export type WorkerMessage =

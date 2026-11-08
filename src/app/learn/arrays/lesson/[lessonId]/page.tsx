@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import PythonArena from "@/components/arena/PythonArena";
 import { ARRAYS_MODULE, findLesson } from "@/data/arrays-module";
+import { findExerciseForLesson } from "@/data/exercises";
 
 /** Only the eight known lessons exist; any other id is a real 404 from the router. */
 export const dynamicParams = false;
@@ -31,6 +32,9 @@ export default async function LessonPage({
     notFound();
   }
 
+  const exercise = findExerciseForLesson(lesson.id);
+  const practiceStarter = exercise?.starterCode ?? lesson.starterCode;
+
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
       <nav className="text-sm text-zinc-500">
@@ -46,8 +50,8 @@ export default async function LessonPage({
       <h1 className="mt-4 text-3xl font-semibold tracking-tight">{lesson.title}</h1>
       <section className="mt-8">
         <h2 className="mb-4 text-lg font-medium">Practice</h2>
-        {lesson.starterCode ? (
-          <PythonArena starterCode={lesson.starterCode} />
+        {practiceStarter ? (
+          <PythonArena starterCode={practiceStarter} exercise={exercise} />
         ) : (
           <p className="text-zinc-600 dark:text-zinc-400">
             Practice for this lesson comes with its lesson content.

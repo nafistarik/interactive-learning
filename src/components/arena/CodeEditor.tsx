@@ -17,6 +17,8 @@ interface CodeEditorProps {
   highlight: LineRange | null;
   /** Line that failed in the current frame, marked with an error marker. */
   errorLine: number | null;
+  /** Lines that define the operands of a failed step: the lines to fix (brief Part 9). */
+  fixLines: LineRange[];
 }
 
 /**
@@ -27,8 +29,15 @@ interface CodeEditorProps {
  * @param props.onChange - Called with the new code on every edit.
  * @param props.highlight - Lines to highlight, or `null` for none.
  * @param props.errorLine - Line to mark as failing, or `null` for none.
+ * @param props.fixLines - Lines to highlight as the place to fix, drawn in amber.
  */
-export default function CodeEditor({ value, onChange, highlight, errorLine }: CodeEditorProps) {
+export default function CodeEditor({
+  value,
+  onChange,
+  highlight,
+  errorLine,
+  fixLines,
+}: CodeEditorProps) {
   const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
   const monacoRef = useRef<Parameters<OnMount>[1] | null>(null);
   const decorationIds = useRef<string[]>([]);
@@ -46,18 +55,15 @@ export default function CodeEditor({ value, onChange, highlight, errorLine }: Co
     if (!editor || !monaco) {
       return;
     }
-    decorationIds.current = editor.deltaDecorations(
-      decorationIds.current,
-      highlight
-        ? [
-            {
-              range: new monaco.Range(highlight.startLine, 1, highlight.endLine, 1),
-              options: { isWholeLine: true, className: "frame-highlight" },
-            },
-          ]
-        : [],
-    );
-  }, [highlight, mounted]);
+    const current = highlight
+      ? [{ range: new monaco.Range(highlight.startLine, 1, highlight.endLine, 1), options: { isWholeLine: true, className: "frame-highlight" } }]
+      : [];
+    const fixes = fixLines.map((lines) => ({
+      range: new monaco.Range(lines.startLine, 1, lines.endLine, 1),
+      options: { isWholeLine: true, className: "fix-highlight" },
+    }));
+    decorationIds.current = editor.deltaDecorations(decorationIds.current, [...current, ...fixes]);
+  }, [highlight, fixLines, mounted]);
 
   useEffect(() => {
     const editor = editorRef.current;

@@ -30,6 +30,10 @@ export interface OperationStep {
   operator: "+" | "-" | "*" | "/";
   left: ArraySnapshot;
   right: ArraySnapshot;
+  /** Variable name of the left operand, or `null` when it is not a plain name. */
+  leftName: string | null;
+  /** Variable name of the right operand, or `null` when it is not a plain name. */
+  rightName: string | null;
   result?: ArraySnapshot;
 }
 

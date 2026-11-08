@@ -13,7 +13,7 @@ export interface Lesson {
 }
 
 /** Starter code of the Part 9 broadcasting scenario (lesson 07, Exercise 03). */
-const BROADCASTING_STARTER = [
+export const BROADCASTING_STARTER = [
   "import numpy as np",
   "",
   "X = np.array([",

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { ArraySnapshot, OperationStep } from "@/features/execution/frames";
+import type { ArraySnapshot, ExecutionFrame, OperationStep } from "@/features/execution/frames";
 import {
   analyseBroadcast,
   buildStages,
@@ -8,6 +8,7 @@ import {
   gridLayers,
   numericValues,
 } from "@/features/visualization/broadcast";
+import { findOperandDefinitions } from "@/features/visualization/definitions";
 
 describe("analyseBroadcast", () => {
   it("broadcasts (3, 2) with (2,) to (3, 2), right-aligned (Part 9)", () => {
@@ -60,6 +61,8 @@ describe("buildStages", () => {
     operator: "*",
     left: { shape: [1], dtype: "int64", values: [1], truncated: false },
     right: { shape: [1], dtype: "int64", values: [1], truncated: false },
+    leftName: "a",
+    rightName: "b",
   };
 
   it("gives a frame without arithmetic one stage", () => {
@@ -116,5 +119,45 @@ describe("numericValues", () => {
   it("returns null for a truncated or non-numeric snapshot", () => {
     expect(numericValues({ shape: [2], dtype: "int64", values: [1, 2], truncated: true })).toBeNull();
     expect(numericValues({ shape: [1], dtype: "str", values: ["a"], truncated: false })).toBeNull();
+  });
+});
+
+describe("findOperandDefinitions", () => {
+  /** A minimal successful frame that assigned `target` on the given lines. */
+  function assignFrame(index: number, target: string, startLine: number, endLine: number): ExecutionFrame {
+    return {
+      index,
+      startLine,
+      endLine,
+      source: "",
+      operationType: "assign",
+      targetName: target,
+      operations: [],
+      variables: [],
+      stdout: "",
+      status: "success",
+    };
+  }
+
+  it("finds the latest assignment of each operand before the failing frame", () => {
+    const frames = [
+      assignFrame(0, "X", 3, 7),
+      assignFrame(1, "w", 9, 9),
+      assignFrame(2, "w", 12, 12),
+      assignFrame(3, "out", 14, 14),
+    ];
+
+    const found = findOperandDefinitions(frames, 3, ["X", "w"]);
+
+    expect(found.map((item) => [item.name, item.frame.startLine])).toEqual([
+      ["X", 3],
+      ["w", 12],
+    ]);
+  });
+
+  it("skips names that are not plain variables and names never assigned", () => {
+    const frames = [assignFrame(0, "X", 3, 7)];
+
+    expect(findOperandDefinitions(frames, 1, [null, "missing", "X"]).map((item) => item.name)).toEqual(["X"]);
   });
 });

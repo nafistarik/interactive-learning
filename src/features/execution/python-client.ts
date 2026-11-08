@@ -1,5 +1,7 @@
 import type { PythonRunResult } from "@/lib/python/run-python";
 
+import type { ValidationCheck, ValidationOutcome, ValidationRun } from "@/features/validation/types";
+
 import type { RecordingOutcome } from "./frames";
 import type { LoadStage, WorkerMessage, WorkerOutcome, WorkerRequest } from "./protocol";
 
@@ -28,10 +30,19 @@ export interface WorkerLike {
 
 /** A request waiting for its outcome. */
 interface PendingRequest {
-  kind: "run" | "record";
+  kind: RequestKind;
   resolve: (outcome: WorkerOutcome) => void;
   timer: ReturnType<typeof setTimeout>;
 }
+
+/** Kinds of request the client sends to the worker. */
+type RequestKind = "run" | "record" | "validate";
+
+/** The body of a request, without its id. */
+type RequestBody =
+  | { kind: "run"; code: string }
+  | { kind: "record"; code: string; prelude: string }
+  | { kind: "validate"; code: string; runs: ValidationRun[]; checks: ValidationCheck[] };
 
 /**
  * A failed outcome of the given kind with the given message. Used for timeouts and
@@ -41,11 +52,15 @@ interface PendingRequest {
  * @param error - The message to show.
  * @returns The failed outcome.
  */
-function failedOutcome(kind: "run" | "record", error: string): WorkerOutcome {
-  if (kind === "run") {
-    return { kind, result: { ok: false, stdout: "", error } };
+function failedOutcome(kind: RequestKind, error: string): WorkerOutcome {
+  switch (kind) {
+    case "run":
+      return { kind, result: { ok: false, stdout: "", error } };
+    case "record":
+      return { kind, recording: { ok: false, frames: [], error } };
+    case "validate":
+      return { kind, validation: { passed: false, problems: [error] } };
   }
-  return { kind, recording: { ok: false, frames: [], error } };
 }
 
 /**
@@ -101,6 +116,25 @@ export class PythonClient {
       : { ok: false, frames: [], error: "Unexpected reply from the Python worker." };
   }
 
+  /**
+   * Checks the learner's code against an exercise (brief Part 10).
+   *
+   * @param code - The learner's code.
+   * @param runs - The setups to run the code with.
+   * @param checks - What to compare after each run.
+   * @returns The verdict, or a failed verdict when the check was stopped.
+   */
+  async validate(
+    code: string,
+    runs: ValidationRun[],
+    checks: ValidationCheck[],
+  ): Promise<ValidationOutcome> {
+    const outcome = await this.request("validate", { kind: "validate", code, runs, checks });
+    return outcome.kind === "validate"
+      ? outcome.validation
+      : { passed: false, problems: ["Unexpected reply from the Python worker."] };
+  }
+
   /** Cancels waiting requests and terminates the worker. Call when the page unmounts. */
   dispose(): void {
     for (const id of [...this.pending.keys()]) {
@@ -117,10 +151,7 @@ export class PythonClient {
    * @param body - The request without its id.
    * @returns The outcome of the request.
    */
-  private request(
-    kind: "run" | "record",
-    body: { kind: "run"; code: string } | { kind: "record"; code: string; prelude: string },
-  ): Promise<WorkerOutcome> {
+  private request(kind: RequestKind, body: RequestBody): Promise<WorkerOutcome> {
     const worker = this.ensureWorker();
     const id = this.nextId++;
 

@@ -57,6 +57,8 @@ describe("recordFrames with Pyodide and NumPy", () => {
     expect(product.operations).toHaveLength(1);
     const [step] = product.operations;
     expect(step.operator).toBe("*");
+    expect(step.leftName).toBe("X");
+    expect(step.rightName).toBe("w");
     expect(step.left.shape).toEqual([3, 2]);
     expect(step.right.shape).toEqual([2]);
     // The integer width is Pyodide's platform default, so only the shape and values are fixed.

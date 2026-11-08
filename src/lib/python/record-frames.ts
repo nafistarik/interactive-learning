@@ -3,6 +3,7 @@ import type { PyodideInterface } from "pyodide";
 import type { ExecutionFrame, RecordingOutcome } from "@/features/execution/frames";
 
 import { RECORDER_SOURCE } from "./recorder-source";
+import { VALIDATOR_SOURCE } from "./validator-source";
 
 /** What the Python `record_frames` function returns, parsed from JSON. */
 interface RecorderOutput {
@@ -11,12 +12,14 @@ interface RecorderOutput {
 }
 
 /**
- * Defines the frame recorder in a loaded Pyodide. Call once per instance.
+ * Defines the frame recorder and the exercise validator in a loaded Pyodide. Call once per
+ * instance.
  *
  * @param pyodide - A Pyodide instance with NumPy loaded.
  */
 export function installRecorder(pyodide: PyodideInterface): void {
   pyodide.runPython(RECORDER_SOURCE);
+  pyodide.runPython(VALIDATOR_SOURCE);
 }
 
 /**

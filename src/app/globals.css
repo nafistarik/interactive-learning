@@ -29,3 +29,8 @@ body {
 .frame-highlight {
   background: rgba(59, 130, 246, 0.18);
 }
+
+/* Lines that define the operands of a failed broadcast: the place to fix (brief Part 9). */
+.fix-highlight {
+  background: rgba(245, 158, 11, 0.22);
+}

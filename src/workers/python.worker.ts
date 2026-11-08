@@ -4,6 +4,7 @@ import type { WorkerMessage, WorkerOutcome, WorkerRequest } from "@/features/exe
 import { PYODIDE_INDEX_URL } from "@/lib/python/pyodide-version";
 import { installRecorder, recordFrames } from "@/lib/python/record-frames";
 import { runPython } from "@/lib/python/run-python";
+import { validateExercise } from "@/lib/python/validate-exercise";
 
 /** Shape of Pyodide's ES module entry point, as loaded from the CDN. */
 interface PyodideModule {
@@ -12,6 +13,9 @@ interface PyodideModule {
 
 /** Message used when the runtime cannot load. The page shows its own retry text. */
 const LOAD_FAILED_TEXT = "The Python runtime failed to load. Try again.";
+
+/** Requests that need the Python runtime (everything except `load`). */
+type RuntimeRequest = Exclude<WorkerRequest, { kind: "load" }>;
 
 /** One Pyodide instance per worker, loaded on the first request. */
 let pyodidePromise: Promise<PyodideInterface> | undefined;
@@ -52,6 +56,44 @@ function getPyodide(): Promise<PyodideInterface> {
 }
 
 /**
+ * Runs one request that needs the loaded runtime and returns its outcome.
+ *
+ * @param pyodide - The loaded Pyodide instance.
+ * @param request - The request to run.
+ * @returns The outcome of the request.
+ */
+async function runRequest(pyodide: PyodideInterface, request: RuntimeRequest): Promise<WorkerOutcome> {
+  switch (request.kind) {
+    case "run":
+      return { kind: "run", result: await runPython(pyodide, request.code) };
+    case "record":
+      return { kind: "record", recording: recordFrames(pyodide, request.code, request.prelude) };
+    case "validate":
+      return {
+        kind: "validate",
+        validation: validateExercise(pyodide, request.code, request.runs, request.checks),
+      };
+  }
+}
+
+/**
+ * The outcome reported when the runtime cannot load, of the same kind as the request.
+ *
+ * @param request - The request that could not run.
+ * @returns A failed outcome carrying the load-failed message.
+ */
+function failedOutcome(request: RuntimeRequest): WorkerOutcome {
+  switch (request.kind) {
+    case "run":
+      return { kind: "run", result: { ok: false, stdout: "", error: LOAD_FAILED_TEXT } };
+    case "record":
+      return { kind: "record", recording: { ok: false, frames: [], error: LOAD_FAILED_TEXT } };
+    case "validate":
+      return { kind: "validate", validation: { passed: false, problems: [LOAD_FAILED_TEXT] } };
+  }
+}
+
+/**
  * Handles one page request and posts its outcome. A load failure posts `load-failed` and a
  * failed outcome of the same kind as the request.
  *
@@ -69,16 +111,10 @@ async function handle(request: WorkerRequest): Promise<void> {
   let outcome: WorkerOutcome;
   try {
     const pyodide = await getPyodide();
-    outcome =
-      request.kind === "run"
-        ? { kind: "run", result: await runPython(pyodide, request.code) }
-        : { kind: "record", recording: recordFrames(pyodide, request.code, request.prelude) };
+    outcome = await runRequest(pyodide, request);
   } catch {
     postMessage({ kind: "load-failed" } satisfies WorkerMessage);
-    outcome =
-      request.kind === "run"
-        ? { kind: "run", result: { ok: false, stdout: "", error: LOAD_FAILED_TEXT } }
-        : { kind: "record", recording: { ok: false, frames: [], error: LOAD_FAILED_TEXT } };
+    outcome = failedOutcome(request);
   }
   postMessage({ kind: "result", id: request.id, outcome } satisfies WorkerMessage);
 }

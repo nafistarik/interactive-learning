@@ -87,6 +87,11 @@ def compile_statement(node):
     return compile(ast.Module(body=[node], type_ignores=[]), "<exec>", "exec")
 
 
+def name_of(node):
+    """The variable name of an operand, or None when the operand is not a plain name."""
+    return node.id if isinstance(node, ast.Name) else None
+
+
 def evaluate(node, namespace, steps):
     """Evaluates an expression once. Each arithmetic node appends one step, operands first."""
     if isinstance(node, ast.BinOp) and type(node.op) in OPERATORS:
@@ -98,12 +103,20 @@ def evaluate(node, namespace, steps):
         try:
             result = function(left, right)
         except Exception as failure:
-            steps.append({"operator": symbol, "left": left_snapshot, "right": right_snapshot})
+            steps.append({
+                "operator": symbol,
+                "left": left_snapshot,
+                "right": right_snapshot,
+                "leftName": name_of(node.left),
+                "rightName": name_of(node.right),
+            })
             raise OperationFailed(failure, [left_snapshot["shape"], right_snapshot["shape"]])
         steps.append({
             "operator": symbol,
             "left": left_snapshot,
             "right": right_snapshot,
+            "leftName": name_of(node.left),
+            "rightName": name_of(node.right),
             "result": snapshot(result),
         })
         return result

@@ -4,13 +4,17 @@ import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import type { ExecutionFrame, RecordingOutcome } from "@/features/execution/frames";
+import type { Exercise, ValidationOutcome } from "@/features/validation/types";
 import { PythonClient, type RuntimeStatus } from "@/features/execution/python-client";
 
 import { ExecutionTimeline } from "@/components/visualization/ExecutionTimeline";
 import { FrameVisualizer } from "@/components/visualization/FrameVisualizer";
 import { VariableInspector } from "@/components/visualization/VariableInspector";
 
+import { findOperandDefinitions } from "@/features/visualization/definitions";
+
 import type { LineRange } from "./CodeEditor";
+import { ExercisePanel } from "./ExercisePanel";
 
 /** Playback speeds offered for the animation (brief Part 6.2). */
 const SPEEDS = [0.5, 1, 2] as const;
@@ -75,9 +79,19 @@ function frameOutput(frame: ExecutionFrame): string {
  * the code again. Editing the code discards the frames. Pause and speed need the animation
  * (brief Part 8), so they stay disabled.
  *
+ * With an exercise, Check solution runs the validator (brief Part 10) and the panel shows the
+ * feedback.
+ *
  * @param props.starterCode - The code the editor starts with and Reset code returns to.
+ * @param props.exercise - The exercise practised here, if the lesson has one.
  */
-export default function PythonArena({ starterCode }: { starterCode: string }) {
+export default function PythonArena({
+  starterCode,
+  exercise,
+}: {
+  starterCode: string;
+  exercise?: Exercise;
+}) {
   const [code, setCode] = useState(starterCode);
   const [runtime, setRuntime] = useState<RuntimeStatus>({ state: "idle" });
   const [recording, setRecording] = useState<RecordingOutcome | null>(null);
@@ -85,6 +99,9 @@ export default function PythonArena({ starterCode }: { starterCode: string }) {
   const [running, setRunning] = useState(false);
   const [paused, setPaused] = useState(false);
   const [runId, setRunId] = useState(0);
+  const [verdict, setVerdict] = useState<ValidationOutcome | null>(null);
+  const [attempts, setAttempts] = useState(0);
+  const [checking, setChecking] = useState(false);
   const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(1);
   const clientRef = useRef<PythonClient | null>(null);
 
@@ -104,6 +121,25 @@ export default function PythonArena({ starterCode }: { starterCode: string }) {
   const errorLine = frame?.status === "error" ? frame.startLine : null;
   const atLast = frames.length === 0 || index >= frames.length - 1;
   const animated = frame !== null && frame.operations.length > 0;
+  const failedStep =
+    frame?.status === "error" && frame.error?.operandShapes
+      ? (frame.operations[frame.operations.length - 1] ?? null)
+      : null;
+  const fixDefinitions = useMemo(
+    () =>
+      failedStep && index >= 0
+        ? findOperandDefinitions(frames, index, [failedStep.leftName, failedStep.rightName])
+        : [],
+    [failedStep, frames, index],
+  );
+  const fixLines = useMemo<LineRange[]>(
+    () =>
+      fixDefinitions.map((definition) => ({
+        startLine: definition.frame.startLine,
+        endLine: definition.frame.endLine,
+      })),
+    [fixDefinitions],
+  );
 
   /** Records the current code and returns the recording, storing it on the page. */
   async function record(): Promise<RecordingOutcome | null> {
@@ -142,14 +178,29 @@ export default function PythonArena({ starterCode }: { starterCode: string }) {
     setIndex(0);
   }
 
+  /** Checks the current code against the exercise and shows the verdict. */
+  async function checkSolution() {
+    const client = clientRef.current;
+    if (!client || !exercise) {
+      return;
+    }
+    setChecking(true);
+    const outcome = await client.validate(code, exercise.runs, exercise.checks);
+    setVerdict(outcome);
+    setAttempts((value) => value + 1);
+    setChecking(false);
+  }
+
   /**
-   * Updates the code. Any edit makes the recording stale, so it is discarded.
+   * Updates the code. Any edit makes the recording stale, so it is discarded, and the last
+   * verdict no longer describes the code, so it is cleared.
    *
    * @param next - The new code.
    */
   function changeCode(next: string) {
     setCode(next);
     resetExecution();
+    setVerdict(null);
   }
 
   const failed = runtime.state === "failed";
@@ -190,6 +241,16 @@ export default function PythonArena({ starterCode }: { starterCode: string }) {
         >
           Reset execution
         </button>
+        {exercise ? (
+          <button
+            type="button"
+            onClick={checkSolution}
+            disabled={checking || running || failed}
+            className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm text-white disabled:opacity-40"
+          >
+            Check solution
+          </button>
+        ) : null}
         <button
           type="button"
           onClick={() => changeCode(starterCode)}
@@ -230,12 +291,15 @@ export default function PythonArena({ starterCode }: { starterCode: string }) {
         ) : null}
       </p>
 
+      {exercise ? <ExercisePanel exercise={exercise} verdict={verdict} attempts={attempts} /> : null}
+
       <div className="grid gap-4 xl:grid-cols-2">
         <CodeEditor
           value={code}
           onChange={changeCode}
           highlight={lines}
           errorLine={errorLine}
+          fixLines={fixLines}
         />
 
         <div className="grid content-start gap-3">
@@ -250,6 +314,20 @@ export default function PythonArena({ starterCode }: { starterCode: string }) {
           ) : (
             <p className="text-sm text-zinc-500">Run the code to see the arrays and the broadcasting here.</p>
           )}
+          {fixDefinitions.length > 0 ? (
+            <div role="status" className="grid gap-1 rounded-md border border-amber-400 bg-amber-50 p-3 text-sm dark:bg-amber-950/40">
+              <p className="font-medium">Fix the operand that does not match:</p>
+              {fixDefinitions.map((definition) => (
+                <p key={definition.name}>
+                  {definition.name} is defined on line{" "}
+                  {definition.frame.startLine === definition.frame.endLine
+                    ? definition.frame.startLine
+                    : `${definition.frame.startLine}–${definition.frame.endLine}`}
+                  .
+                </p>
+              ))}
+            </div>
+          ) : null}
           <pre
             aria-live="polite"
             className="min-h-16 whitespace-pre-wrap rounded-md border border-zinc-200 p-3 text-sm dark:border-zinc-800"
