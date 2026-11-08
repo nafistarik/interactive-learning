@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ExecutionFrame, RecordingOutcome } from "@/features/execution/frames";
 import type { Exercise, ValidationOutcome } from "@/features/validation/types";
 import { PythonClient, type RuntimeStatus } from "@/features/execution/python-client";
+import { useProgress } from "@/features/progress/progress-context";
 
 import { ExecutionTimeline } from "@/components/visualization/ExecutionTimeline";
 import { FrameVisualizer } from "@/components/visualization/FrameVisualizer";
@@ -102,6 +103,7 @@ export default function PythonArena({
   const [verdict, setVerdict] = useState<ValidationOutcome | null>(null);
   const [attempts, setAttempts] = useState(0);
   const [checking, setChecking] = useState(false);
+  const progress = useProgress();
   const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(1);
   const clientRef = useRef<PythonClient | null>(null);
 
@@ -188,6 +190,7 @@ export default function PythonArena({
     const outcome = await client.validate(code, exercise.runs, exercise.checks);
     setVerdict(outcome);
     setAttempts((value) => value + 1);
+    progress.recordCheck(exercise.id, outcome.passed);
     setChecking(false);
   }
 
@@ -291,7 +294,15 @@ export default function PythonArena({
         ) : null}
       </p>
 
-      {exercise ? <ExercisePanel exercise={exercise} verdict={verdict} attempts={attempts} /> : null}
+      {exercise ? (
+        <ExercisePanel
+          exercise={exercise}
+          verdict={verdict}
+          attempts={attempts}
+          progress={progress.state.exercises[exercise.id]}
+          onHintOpened={() => progress.recordHint(exercise.id)}
+        />
+      ) : null}
 
       <div className="grid gap-4 xl:grid-cols-2">
         <CodeEditor

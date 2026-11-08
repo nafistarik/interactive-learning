@@ -56,3 +56,19 @@ export function writeStoredValue(
     return false;
   }
 }
+
+/**
+ * Removes a stored key. Returns `false` when the storage refused the removal.
+ *
+ * @param storage - The storage to remove from.
+ * @param key - The key to remove.
+ * @returns `true` when the key was removed (or there was nothing to remove).
+ */
+export function removeStoredValue(storage: KeyValueStorage | undefined, key: string): boolean {
+  try {
+    storage?.removeItem(key);
+    return true;
+  } catch {
+    return false;
+  }
+}

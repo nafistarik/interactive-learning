@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { ARRAYS_MODULE } from "@/data/arrays-module";
+import { DashboardSummary } from "@/components/progress/DashboardSummary";
 
 /** Roadmap phases from brief Part 4.1. Only the first phase has pages. */
 const ROADMAP = [
@@ -24,26 +24,7 @@ export default function DashboardPage() {
         Learn by writing real Python and watching the data change.
       </p>
 
-      <section className="mt-8 rounded-lg border border-zinc-200 p-5 dark:border-zinc-800">
-        <h2 className="text-lg font-medium">{ARRAYS_MODULE.title}</h2>
-        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-          {ARRAYS_MODULE.lessons.length} lessons
-        </p>
-        <div className="mt-4 flex gap-3">
-          <Link
-            href="/learn/arrays"
-            className="rounded-md bg-zinc-900 px-4 py-2 text-sm text-white dark:bg-zinc-100 dark:text-zinc-900"
-          >
-            Open module
-          </Link>
-          <Link
-            href={`/learn/arrays/lesson/${ARRAYS_MODULE.lessons[0].id}`}
-            className="rounded-md border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-700"
-          >
-            Start lesson 01
-          </Link>
-        </div>
-      </section>
+      <DashboardSummary />
 
       <section className="mt-10">
         <h2 className="text-lg font-medium">Roadmap</h2>

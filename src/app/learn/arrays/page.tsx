@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { LessonList } from "@/components/progress/LessonList";
+import { findExerciseForLesson } from "@/data/exercises";
 import { ARRAYS_MODULE } from "@/data/arrays-module";
 
 /**
@@ -18,21 +20,14 @@ export default function ArraysModulePage() {
       <h1 className="mt-4 text-3xl font-semibold tracking-tight">{ARRAYS_MODULE.title}</h1>
       <p className="mt-2 text-zinc-600 dark:text-zinc-400">{ARRAYS_MODULE.description}</p>
 
-      <ol className="mt-8 divide-y divide-zinc-200 dark:divide-zinc-800">
-        {ARRAYS_MODULE.lessons.map((lesson) => (
-          <li key={lesson.id}>
-            <Link
-              href={`/learn/arrays/lesson/${lesson.id}`}
-              className="flex items-center justify-between py-3 hover:underline"
-            >
-              <span>
-                {lesson.id}. {lesson.title}
-              </span>
-              {lesson.hasExercise ? <span className="text-xs text-zinc-500">Exercise</span> : null}
-            </Link>
-          </li>
-        ))}
-      </ol>
+      <LessonList
+        lessons={ARRAYS_MODULE.lessons.map((lesson) => ({
+          id: lesson.id,
+          title: lesson.title,
+          hasExercise: lesson.hasExercise,
+          exerciseId: findExerciseForLesson(lesson.id)?.id,
+        }))}
+      />
     </main>
   );
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import PythonArena from "@/components/arena/PythonArena";
+import { RememberLesson } from "@/components/progress/RememberLesson";
 import { ARRAYS_MODULE, findLesson } from "@/data/arrays-module";
 import { findExerciseForLesson } from "@/data/exercises";
 
@@ -47,6 +48,7 @@ export default async function LessonPage({
         </Link>{" "}
         / Lesson {lesson.id}
       </nav>
+      <RememberLesson lessonId={lesson.id} />
       <h1 className="mt-4 text-3xl font-semibold tracking-tight">{lesson.title}</h1>
       <section className="mt-8">
         <h2 className="mb-4 text-lg font-medium">Practice</h2>

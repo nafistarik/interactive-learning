@@ -1,0 +1,138 @@
+"use client";
+
+import Link from "next/link";
+import { useRef } from "react";
+
+import { ARRAYS_MODULE } from "@/data/arrays-module";
+import { EXERCISES } from "@/data/exercises";
+import { lessonStatusOf, totalsOf } from "@/features/progress/model";
+import { useProgress } from "@/features/progress/progress-context";
+
+/** Status text per lesson on the progress page. */
+const STATUS_TEXT = {
+  "not-started": "Not started",
+  "exercise-passed": "Exercise passed",
+  completed: "Completed",
+} as const;
+
+/**
+ * The progress page (brief Part 4.4): totals, per-lesson status, exercise stars, and Reset
+ * progress behind a confirmation dialog.
+ */
+export function ProgressView() {
+  const { state, loaded, reset } = useProgress();
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  const totals = totalsOf(state);
+
+  if (!loaded) {
+    return <p className="mt-6 text-zinc-500">Loading your progress…</p>;
+  }
+
+  return (
+    <div className="mt-6 grid gap-8">
+      <dl className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
+        <div>
+          <dt className="text-zinc-500">XP</dt>
+          <dd className="text-lg font-medium">{totals.xp}</dd>
+        </div>
+        <div>
+          <dt className="text-zinc-500">Stars</dt>
+          <dd className="text-lg font-medium">{totals.stars}</dd>
+        </div>
+        <div>
+          <dt className="text-zinc-500">Lessons completed</dt>
+          <dd className="text-lg font-medium">
+            {totals.completedLessons} / {ARRAYS_MODULE.lessons.length}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-zinc-500">Module</dt>
+          <dd className="text-lg font-medium">{totals.modulePercent}%</dd>
+        </div>
+      </dl>
+
+      <section className="grid gap-2">
+        <h2 className="text-base font-medium">Lessons</h2>
+        <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
+          {ARRAYS_MODULE.lessons.map((lesson) => {
+            const exercise = EXERCISES.find((item) => item.lessonId === lesson.id);
+            return (
+              <li key={lesson.id} className="flex justify-between py-2 text-sm">
+                <Link href={`/learn/arrays/lesson/${lesson.id}`} className="hover:underline">
+                  {lesson.id}. {lesson.title}
+                </Link>
+                <span className="text-zinc-500">
+                  {STATUS_TEXT[lessonStatusOf(state, lesson.id, exercise?.id)]}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <section className="grid gap-2">
+        <h2 className="text-base font-medium">Exercises</h2>
+        <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
+          {EXERCISES.map((exercise) => {
+            const progress = state.exercises[exercise.id];
+            return (
+              <li key={exercise.id} className="flex justify-between py-2 text-sm">
+                <span>{exercise.title}</span>
+                <span className="text-zinc-500">
+                  {progress?.passed
+                    ? `Passed · ${"★".repeat(progress.stars)}${"☆".repeat(3 - progress.stars)}`
+                    : progress
+                      ? `${progress.attempts} check${progress.attempts === 1 ? "" : "s"}`
+                      : "Not tried"}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+
+      <div>
+        <button
+          type="button"
+          onClick={() => dialogRef.current?.showModal()}
+          className="rounded-md border border-red-400 px-3 py-1.5 text-sm text-red-600 dark:text-red-400"
+        >
+          Reset progress
+        </button>
+      </div>
+
+      <dialog
+        ref={dialogRef}
+        aria-labelledby="reset-title"
+        className="w-full max-w-md rounded-lg p-6 backdrop:bg-black/50 dark:bg-zinc-900"
+      >
+        <h2 id="reset-title" className="text-lg font-medium">
+          Reset all progress?
+        </h2>
+        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+          XP, stars, completed lessons and exercise results are deleted from this browser. This
+          cannot be undone.
+        </p>
+        <div className="mt-6 flex justify-end gap-3 text-sm">
+          <button
+            type="button"
+            onClick={() => dialogRef.current?.close()}
+            className="rounded-md border border-zinc-300 px-3 py-1.5 dark:border-zinc-700"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              reset();
+              dialogRef.current?.close();
+            }}
+            className="rounded-md bg-red-600 px-3 py-1.5 text-white"
+          >
+            Reset progress
+          </button>
+        </div>
+      </dialog>
+    </div>
+  );
+}
