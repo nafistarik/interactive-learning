@@ -46,7 +46,7 @@ function healthyWorker(): FakeWorker {
         { kind: "status", stage: "ready" },
       ];
     }
-    return [{ kind: "result", id: request.id, result: OK_RESULT }];
+    return [{ kind: "result", id: request.id, outcome: { kind: "run", result: OK_RESULT } }];
   });
 }
 
@@ -90,7 +90,10 @@ describe("PythonClient", () => {
         {
           kind: "result",
           id: request.id,
-          result: { ok: false, stdout: "", error: "The Python runtime failed to load. Try again." },
+          outcome: {
+            kind: "run",
+            result: { ok: false, stdout: "", error: "The Python runtime failed to load. Try again." },
+          },
         },
       ];
     });
@@ -124,6 +127,15 @@ describe("PythonClient", () => {
 
     await expect(client.run("print(1)")).resolves.toEqual(OK_RESULT);
     expect(fresh.requests.map((request) => request.kind)).toEqual(["run"]);
+  });
+
+  it("stops a recording that exceeds the time limit with a failed recording", async () => {
+    const client = new PythonClient(() => new FakeWorker(() => null), () => undefined);
+
+    const pending = client.record("while True: pass");
+    await vi.advanceTimersByTimeAsync(RUN_TIMEOUT_MS);
+
+    await expect(pending).resolves.toEqual({ ok: false, frames: [], error: STOPPED_MESSAGE });
   });
 
   it("does not stop a run that finishes inside the time limit", async () => {

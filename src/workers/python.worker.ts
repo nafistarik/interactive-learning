@@ -1,27 +1,34 @@
 import type { PyodideInterface } from "pyodide";
 
+import type { WorkerMessage, WorkerOutcome, WorkerRequest } from "@/features/execution/protocol";
 import { PYODIDE_INDEX_URL } from "@/lib/python/pyodide-version";
-import { runPython, type PythonRunResult } from "@/lib/python/run-python";
-import type { WorkerMessage, WorkerRequest } from "@/features/execution/protocol";
+import { installRecorder, recordFrames } from "@/lib/python/record-frames";
+import { runPython } from "@/lib/python/run-python";
 
 /** Shape of Pyodide's ES module entry point, as loaded from the CDN. */
 interface PyodideModule {
   loadPyodide: (options: { indexURL: string }) => Promise<PyodideInterface>;
 }
 
-/** Result sent when the runtime cannot load. The page shows its own retry text. */
-const LOAD_FAILED_RESULT: PythonRunResult = {
-  ok: false,
-  stdout: "",
-  error: "The Python runtime failed to load. Try again.",
-};
+/** Message used when the runtime cannot load. The page shows its own retry text. */
+const LOAD_FAILED_TEXT = "The Python runtime failed to load. Try again.";
 
 /** One Pyodide instance per worker, loaded on the first request. */
 let pyodidePromise: Promise<PyodideInterface> | undefined;
 
 /**
- * Loads Pyodide and NumPy once and reuses them, posting each stage to the page so it can
- * show progress. A failed load clears the cache so the next request tries again.
+ * Posts a loading stage to the page.
+ *
+ * @param stage - The stage that has just started or finished.
+ */
+function postStatus(stage: "runtime" | "numpy" | "ready"): void {
+  postMessage({ kind: "status", stage } satisfies WorkerMessage);
+}
+
+/**
+ * Loads Pyodide and NumPy once, installs the frame recorder, and reuses them. Each stage is
+ * posted to the page for progress. A failed load clears the cache so the next request tries
+ * again.
  *
  * @returns The ready Pyodide instance.
  */
@@ -34,6 +41,7 @@ function getPyodide(): Promise<PyodideInterface> {
     const pyodide = await pyodideModule.loadPyodide({ indexURL: PYODIDE_INDEX_URL });
     postStatus("numpy");
     await pyodide.loadPackage("numpy");
+    installRecorder(pyodide);
     postStatus("ready");
     return pyodide;
   })().catch((error: unknown) => {
@@ -44,44 +52,39 @@ function getPyodide(): Promise<PyodideInterface> {
 }
 
 /**
- * Sends one message to the page.
+ * Handles one page request and posts its outcome. A load failure posts `load-failed` and a
+ * failed outcome of the same kind as the request.
  *
- * @param message - The message to post.
+ * @param request - The request from the page.
  */
-function send(message: WorkerMessage): void {
-  postMessage(message);
-}
-
-/**
- * Posts a loading stage to the page.
- *
- * @param stage - The stage that has just started or finished.
- */
-function postStatus(stage: "runtime" | "numpy" | "ready"): void {
-  send({ kind: "status", stage });
-}
-
-/**
- * Handles requests from the page: `load` warms the runtime, `run` executes code after the
- * runtime is ready. A load failure is reported with `load-failed`, and a pending run gets a
- * failed result.
- */
-addEventListener("message", (event) => {
-  const request: WorkerRequest = event.data;
-
+async function handle(request: WorkerRequest): Promise<void> {
   if (request.kind === "load") {
-    getPyodide().then(
+    await getPyodide().then(
       () => undefined,
-      () => send({ kind: "load-failed" }),
+      () => postMessage({ kind: "load-failed" } satisfies WorkerMessage),
     );
     return;
   }
 
-  getPyodide()
-    .then((pyodide) => runPython(pyodide, request.code))
-    .catch(() => {
-      send({ kind: "load-failed" });
-      return LOAD_FAILED_RESULT;
-    })
-    .then((result) => send({ kind: "result", id: request.id, result }));
+  let outcome: WorkerOutcome;
+  try {
+    const pyodide = await getPyodide();
+    outcome =
+      request.kind === "run"
+        ? { kind: "run", result: await runPython(pyodide, request.code) }
+        : { kind: "record", recording: recordFrames(pyodide, request.code, request.prelude) };
+  } catch {
+    postMessage({ kind: "load-failed" } satisfies WorkerMessage);
+    outcome =
+      request.kind === "run"
+        ? { kind: "run", result: { ok: false, stdout: "", error: LOAD_FAILED_TEXT } }
+        : { kind: "record", recording: { ok: false, frames: [], error: LOAD_FAILED_TEXT } };
+  }
+  postMessage({ kind: "result", id: request.id, outcome } satisfies WorkerMessage);
+}
+
+/** Runs each request from the page and posts back its outcome. */
+addEventListener("message", (event) => {
+  const request: WorkerRequest = event.data;
+  void handle(request);
 });

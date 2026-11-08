@@ -1,10 +1,12 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
+import type { ExecutionFrame, RecordingOutcome } from "@/features/execution/frames";
 import { PythonClient, type RuntimeStatus } from "@/features/execution/python-client";
-import type { PythonRunResult } from "@/lib/python/run-python";
+
+import type { LineRange } from "./CodeEditor";
 
 const CodeEditor = dynamic(() => import("./CodeEditor"), {
   ssr: false,
@@ -43,30 +45,36 @@ function describeStatus(status: RuntimeStatus): string {
 }
 
 /**
- * Text for the output panel: what the code printed, then the error if it failed. A run that
- * printed nothing and succeeded says so, instead of showing an empty box.
+ * Text for the output panel of the frame on screen: what it printed, then its error or note.
  *
- * @param result - The run result.
+ * @param frame - The frame on screen.
  * @returns The text to show.
  */
-function outputText(result: PythonRunResult): string {
-  if (result.ok) {
-    return result.stdout === "" ? "Ran without printed output." : result.stdout;
+function frameOutput(frame: ExecutionFrame): string {
+  const parts = [frame.stdout.trimEnd()];
+  if (frame.status === "error" && frame.error) {
+    parts.push(`${frame.error.type}: ${frame.error.message}`);
   }
-  return [result.stdout, result.error].filter((part) => part !== "").join("\n");
+  if (frame.note) {
+    parts.push(frame.note);
+  }
+  const text = parts.filter((part) => part !== "").join("\n");
+  return text === "" ? "Ran without printed output." : text;
 }
 
 /**
- * Coding arena (brief Part 6): the editor, run controls and output. Starts loading Python
- * when it mounts. Step, pause and speed need the execution engine (Part 7) and the
- * animation (Part 8), so those buttons stay disabled until they exist.
+ * Coding arena (brief Part 6) with the execution engine (brief Part 7). Run all records one
+ * frame per statement; Step forward and back move through the recorded frames without running
+ * the code again. Editing the code discards the frames. Pause and speed need the animation
+ * (brief Part 8), so they stay disabled.
  *
  * @param props.starterCode - The code the editor starts with and Reset code returns to.
  */
 export default function PythonArena({ starterCode }: { starterCode: string }) {
   const [code, setCode] = useState(starterCode);
   const [runtime, setRuntime] = useState<RuntimeStatus>({ state: "idle" });
-  const [result, setResult] = useState<PythonRunResult | null>(null);
+  const [recording, setRecording] = useState<RecordingOutcome | null>(null);
+  const [index, setIndex] = useState(0);
   const [running, setRunning] = useState(false);
   const clientRef = useRef<PythonClient | null>(null);
 
@@ -80,16 +88,60 @@ export default function PythonArena({ starterCode }: { starterCode: string }) {
     };
   }, []);
 
-  /** Runs the whole editor code once and shows its output. */
-  async function runAll() {
+  const frames = useMemo(() => (recording?.ok ? recording.frames : []), [recording]);
+  const frame = frames[index] ?? null;
+  const lines: LineRange | null = frame ? { startLine: frame.startLine, endLine: frame.endLine } : null;
+  const errorLine = frame?.status === "error" ? frame.startLine : null;
+  const atLast = frames.length === 0 || index >= frames.length - 1;
+
+  /** Records the current code and returns the recording, storing it on the page. */
+  async function record(): Promise<RecordingOutcome | null> {
     const client = clientRef.current;
     if (!client) {
-      return;
+      return null;
     }
     setRunning(true);
-    setResult(await client.run(code));
+    const outcome = await client.record(code);
+    setRecording(outcome);
     setRunning(false);
+    return outcome;
   }
+
+  /** Records the code and jumps to its last frame. */
+  async function runAll() {
+    const outcome = await record();
+    setIndex(outcome?.ok && outcome.frames.length > 0 ? outcome.frames.length - 1 : 0);
+  }
+
+  /** Records the code on the first step, or moves one frame forward through the recording. */
+  async function stepForward() {
+    if (recording === null) {
+      const outcome = await record();
+      setIndex(0);
+      return outcome;
+    }
+    setIndex((current) => Math.min(current + 1, frames.length - 1));
+    return null;
+  }
+
+  /** Discards the recording: the next run or step records the code again. */
+  function resetExecution() {
+    setRecording(null);
+    setIndex(0);
+  }
+
+  /**
+   * Updates the code. Any edit makes the recording stale, so it is discarded.
+   *
+   * @param next - The new code.
+   */
+  function changeCode(next: string) {
+    setCode(next);
+    resetExecution();
+  }
+
+  const failed = runtime.state === "failed";
+  const recordingFailed = recording !== null && !recording.ok;
 
   return (
     <div className="grid gap-4">
@@ -97,32 +149,48 @@ export default function PythonArena({ starterCode }: { starterCode: string }) {
         <button
           type="button"
           onClick={runAll}
-          disabled={running || runtime.state === "failed"}
+          disabled={running || failed}
           className="rounded-md bg-zinc-900 px-3 py-1.5 text-sm text-white disabled:opacity-40 dark:bg-zinc-100 dark:text-zinc-900"
         >
           Run all
         </button>
         <button
           type="button"
-          onClick={() => setCode(starterCode)}
-          className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700"
+          onClick={() => setIndex((current) => Math.max(current - 1, 0))}
+          disabled={running || frames.length === 0 || index === 0}
+          className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-zinc-700"
         >
-          Reset code
+          Step back
         </button>
         <button
           type="button"
-          onClick={() => setResult(null)}
-          disabled={result === null}
+          onClick={stepForward}
+          disabled={running || failed || recordingFailed || (recording !== null && atLast)}
+          className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-zinc-700"
+        >
+          Step forward
+        </button>
+        <button
+          type="button"
+          onClick={resetExecution}
+          disabled={recording === null}
           className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-zinc-700"
         >
           Reset execution
         </button>
-        {(["Step back", "Step forward", "Pause", "Speed"] as const).map((label) => (
+        <button
+          type="button"
+          onClick={() => changeCode(starterCode)}
+          className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700"
+        >
+          Reset code
+        </button>
+        {(["Pause", "Speed"] as const).map((label) => (
           <button
             key={label}
             type="button"
             disabled
-            title="Needs the execution engine (brief Part 7)"
+            title="Needs the animation (brief Part 8)"
             className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm opacity-40 dark:border-zinc-700"
           >
             {label}
@@ -132,18 +200,26 @@ export default function PythonArena({ starterCode }: { starterCode: string }) {
 
       <p className="text-sm text-zinc-600 dark:text-zinc-400" role="status">
         {describeStatus(runtime)}
-        {runtime.state === "failed" ? (
-          <button
-            type="button"
-            onClick={() => clientRef.current?.warm()}
-            className="ml-3 underline"
-          >
+        {failed ? (
+          <button type="button" onClick={() => clientRef.current?.warm()} className="ml-3 underline">
             Retry
           </button>
         ) : null}
       </p>
 
-      <CodeEditor value={code} onChange={setCode} />
+      <CodeEditor
+        value={code}
+        onChange={changeCode}
+        highlight={lines}
+        errorLine={errorLine}
+      />
+
+      {frame ? (
+        <p className="text-sm text-zinc-600 dark:text-zinc-400">
+          Step {index + 1} of {frames.length} · lines {frame.startLine}
+          {frame.endLine !== frame.startLine ? `–${frame.endLine}` : ""} · {frame.operationType}
+        </p>
+      ) : null}
 
       <pre
         aria-live="polite"
@@ -151,9 +227,13 @@ export default function PythonArena({ starterCode }: { starterCode: string }) {
       >
         {running
           ? "Running…"
-          : result === null
+          : recording === null
             ? "Output appears here."
-            : outputText(result)}
+            : recording.ok
+              ? frame
+                ? frameOutput(frame)
+                : "The code has no statements."
+              : recording.error}
       </pre>
     </div>
   );
