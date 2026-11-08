@@ -8,7 +8,24 @@ export interface Lesson {
   id: string;
   title: string;
   hasExercise: boolean;
+  /** Code the Practice editor starts with. Lessons without it show no Practice yet. */
+  starterCode?: string;
 }
+
+/** Starter code of the Part 9 broadcasting scenario (lesson 07, Exercise 03). */
+const BROADCASTING_STARTER = [
+  "import numpy as np",
+  "",
+  "X = np.array([",
+  "    [1, 2],",
+  "    [3, 4],",
+  "    [5, 6]",
+  "])",
+  "",
+  "w = np.array([2, 3])",
+  "",
+  "out = X * w",
+].join("\n");
 
 /** The Arrays module as the MVP brief lists it. */
 export const ARRAYS_MODULE = {
@@ -23,7 +40,12 @@ export const ARRAYS_MODULE = {
     { id: "04", title: "Array Indexing", hasExercise: false },
     { id: "05", title: "Introduction to Vectorization", hasExercise: false },
     { id: "06", title: "Element-wise Operations", hasExercise: true },
-    { id: "07", title: "Understanding Broadcasting", hasExercise: true },
+    {
+      id: "07",
+      title: "Understanding Broadcasting",
+      hasExercise: true,
+      starterCode: BROADCASTING_STARTER,
+    },
     { id: "08", title: "Practical Application: X * w + b", hasExercise: true },
   ] satisfies Lesson[],
 } as const;

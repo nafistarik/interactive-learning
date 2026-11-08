@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import PythonArena from "@/components/arena/PythonArena";
 import { ARRAYS_MODULE, findLesson } from "@/data/arrays-module";
 
 /** Only the eight known lessons exist; any other id is a real 404 from the router. */
@@ -13,8 +14,8 @@ export function generateStaticParams() {
 
 /**
  * Learning workspace for one lesson (`/learn/arrays/lesson/[lessonId]`), brief Part 4.3.
- * An unknown lesson id renders the 404 page with a real 404 status. The workspace itself
- * is not built yet, so this page only confirms the lesson exists.
+ * An unknown lesson id renders the 404 page with a real 404 status. Theory is not built yet;
+ * the Practice view shows the coding arena for lessons that have starter code.
  *
  * @param props.params - Route params; `lessonId` is the two-digit lesson id.
  */
@@ -43,9 +44,16 @@ export default async function LessonPage({
         / Lesson {lesson.id}
       </nav>
       <h1 className="mt-4 text-3xl font-semibold tracking-tight">{lesson.title}</h1>
-      <p className="mt-4 text-zinc-600 dark:text-zinc-400">
-        The learning workspace for this lesson is not built yet.
-      </p>
+      <section className="mt-8">
+        <h2 className="mb-4 text-lg font-medium">Practice</h2>
+        {lesson.starterCode ? (
+          <PythonArena starterCode={lesson.starterCode} />
+        ) : (
+          <p className="text-zinc-600 dark:text-zinc-400">
+            Practice for this lesson comes with its lesson content.
+          </p>
+        )}
+      </section>
     </main>
   );
 }

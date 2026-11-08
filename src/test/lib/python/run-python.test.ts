@@ -19,6 +19,7 @@ describe("runPython with Pyodide and NumPy", () => {
     pyodide = await loadPyodide({
       indexURL: join(process.cwd(), "node_modules", "pyodide") + "/",
       packageBaseUrl: PYODIDE_INDEX_URL,
+      packageCacheDir: join(process.cwd(), "node_modules", ".cache", "pyodide"),
     });
     await pyodide.loadPackage("numpy");
   }, 180_000);
