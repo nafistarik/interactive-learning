@@ -32,7 +32,7 @@ export default async function LessonPage({
   }
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
+    <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
       <nav className="text-sm text-zinc-500">
         <Link href="/" className="underline">
           Dashboard

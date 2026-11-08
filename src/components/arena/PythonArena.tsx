@@ -6,7 +6,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ExecutionFrame, RecordingOutcome } from "@/features/execution/frames";
 import { PythonClient, type RuntimeStatus } from "@/features/execution/python-client";
 
+import { ExecutionTimeline } from "@/components/visualization/ExecutionTimeline";
+import { FrameVisualizer } from "@/components/visualization/FrameVisualizer";
+import { VariableInspector } from "@/components/visualization/VariableInspector";
+
 import type { LineRange } from "./CodeEditor";
+
+/** Playback speeds offered for the animation (brief Part 6.2). */
+const SPEEDS = [0.5, 1, 2] as const;
 
 const CodeEditor = dynamic(() => import("./CodeEditor"), {
   ssr: false,
@@ -76,6 +83,9 @@ export default function PythonArena({ starterCode }: { starterCode: string }) {
   const [recording, setRecording] = useState<RecordingOutcome | null>(null);
   const [index, setIndex] = useState(0);
   const [running, setRunning] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const [runId, setRunId] = useState(0);
+  const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(1);
   const clientRef = useRef<PythonClient | null>(null);
 
   useEffect(() => {
@@ -93,6 +103,7 @@ export default function PythonArena({ starterCode }: { starterCode: string }) {
   const lines: LineRange | null = frame ? { startLine: frame.startLine, endLine: frame.endLine } : null;
   const errorLine = frame?.status === "error" ? frame.startLine : null;
   const atLast = frames.length === 0 || index >= frames.length - 1;
+  const animated = frame !== null && frame.operations.length > 0;
 
   /** Records the current code and returns the recording, storing it on the page. */
   async function record(): Promise<RecordingOutcome | null> {
@@ -103,6 +114,7 @@ export default function PythonArena({ starterCode }: { starterCode: string }) {
     setRunning(true);
     const outcome = await client.record(code);
     setRecording(outcome);
+    setRunId((value) => value + 1);
     setRunning(false);
     return outcome;
   }
@@ -185,17 +197,28 @@ export default function PythonArena({ starterCode }: { starterCode: string }) {
         >
           Reset code
         </button>
-        {(["Pause", "Speed"] as const).map((label) => (
-          <button
-            key={label}
-            type="button"
-            disabled
-            title="Needs the animation (brief Part 8)"
-            className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm opacity-40 dark:border-zinc-700"
+        <button
+          type="button"
+          onClick={() => setPaused((value) => !value)}
+          disabled={!animated}
+          className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-zinc-700"
+        >
+          {paused ? "Resume" : "Pause"}
+        </button>
+        <label className="flex items-center gap-2 text-sm">
+          Speed
+          <select
+            value={speed}
+            onChange={(event) => setSpeed(Number(event.target.value) as (typeof SPEEDS)[number])}
+            className="rounded-md border border-zinc-300 bg-transparent px-2 py-1 dark:border-zinc-700"
           >
-            {label}
-          </button>
-        ))}
+            {SPEEDS.map((option) => (
+              <option key={option} value={option}>
+                {option}×
+              </option>
+            ))}
+          </select>
+        </label>
       </div>
 
       <p className="text-sm text-zinc-600 dark:text-zinc-400" role="status">
@@ -207,34 +230,59 @@ export default function PythonArena({ starterCode }: { starterCode: string }) {
         ) : null}
       </p>
 
-      <CodeEditor
-        value={code}
-        onChange={changeCode}
-        highlight={lines}
-        errorLine={errorLine}
-      />
+      <div className="grid gap-4 xl:grid-cols-2">
+        <CodeEditor
+          value={code}
+          onChange={changeCode}
+          highlight={lines}
+          errorLine={errorLine}
+        />
 
-      {frame ? (
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          Step {index + 1} of {frames.length} · lines {frame.startLine}
-          {frame.endLine !== frame.startLine ? `–${frame.endLine}` : ""} · {frame.operationType}
-        </p>
-      ) : null}
+        <div className="grid content-start gap-3">
+          {frame ? (
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+              Step {index + 1} of {frames.length} · lines {frame.startLine}
+              {frame.endLine !== frame.startLine ? `–${frame.endLine}` : ""} · {frame.operationType}
+            </p>
+          ) : null}
+          {frame ? (
+            <FrameVisualizer key={`${runId}-${frame.index}`} frame={frame} paused={paused} speed={speed} />
+          ) : (
+            <p className="text-sm text-zinc-500">Run the code to see the arrays and the broadcasting here.</p>
+          )}
+          <pre
+            aria-live="polite"
+            className="min-h-16 whitespace-pre-wrap rounded-md border border-zinc-200 p-3 text-sm dark:border-zinc-800"
+          >
+            {running
+              ? "Running…"
+              : recording === null
+                ? "Output appears here."
+                : recording.ok
+                  ? frame
+                    ? frameOutput(frame)
+                    : "The code has no statements."
+                  : recording.error}
+          </pre>
+        </div>
+      </div>
 
-      <pre
-        aria-live="polite"
-        className="min-h-24 whitespace-pre-wrap rounded-md border border-zinc-200 p-3 text-sm dark:border-zinc-800"
-      >
-        {running
-          ? "Running…"
-          : recording === null
-            ? "Output appears here."
-            : recording.ok
-              ? frame
-                ? frameOutput(frame)
-                : "The code has no statements."
-              : recording.error}
-      </pre>
+      <div className="grid gap-4 xl:grid-cols-2">
+        <section aria-label="Execution timeline" className="grid content-start gap-2">
+          <h3 className="text-sm font-medium">Timeline</h3>
+          <ExecutionTimeline
+            frames={frames}
+            current={index}
+            onSelect={(next) => setIndex(next)}
+          />
+        </section>
+        <section aria-label="Variables" className="grid content-start gap-2">
+          <h3 className="text-sm font-medium">Variables</h3>
+          <div className="overflow-x-auto">
+            <VariableInspector variables={frame?.variables ?? []} />
+          </div>
+        </section>
+      </div>
     </div>
   );
 }
