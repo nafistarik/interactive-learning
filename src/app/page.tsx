@@ -6,7 +6,8 @@ import { PHASES } from "@/data/curriculum";
 
 /** Dashboard (`/`), brief Part 4.1: welcome, progress, the open phase's modules, the roadmap. */
 export default function DashboardPage() {
-  const [current, ...later] = PHASES;
+  const withModules = PHASES.filter((phase) => phase.modules.length > 0);
+  const later = PHASES.filter((phase) => phase.modules.length === 0);
 
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-10">
@@ -18,12 +19,14 @@ export default function DashboardPage() {
 
       <DashboardSummary />
 
-      <section className="mt-10" aria-labelledby="phase-title">
-        <h2 id="phase-title" className="text-sm font-medium uppercase tracking-wide text-subtle">
-          Phase {current.number} · {current.title}
-        </h2>
-        <PhaseModules phase={current} />
-      </section>
+      {withModules.map((phase) => (
+        <section key={phase.number} className="mt-10" aria-labelledby={`phase-${phase.number}`}>
+          <h2 id={`phase-${phase.number}`} className="text-sm font-medium uppercase tracking-wide text-subtle">
+            Phase {phase.number} · {phase.title}
+          </h2>
+          <PhaseModules phase={phase} />
+        </section>
+      ))}
 
       <section className="mt-10" aria-labelledby="roadmap-title">
         <h2 id="roadmap-title" className="text-sm font-medium uppercase tracking-wide text-subtle">

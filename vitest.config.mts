@@ -7,5 +7,7 @@ export default defineConfig({
   },
   test: {
     include: ["src/test/**/*.test.ts"],
+    // Pyodide tests load scikit-learn on first import (several MB, then cached).
+    testTimeout: 180_000,
   },
 });

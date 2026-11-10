@@ -9,14 +9,31 @@ import { ARRAYS_MODULE } from "./modules/arrays/module";
 import { MATMUL_MODULE } from "./modules/matmul/module";
 import { REDUCTIONS_MODULE } from "./modules/reductions/module";
 import { RESHAPE_MODULE } from "./modules/reshape/module";
+import { LINEAR_REGRESSION_MODULE } from "./modules/linear-regression/module";
+import { GRADIENT_DESCENT_MODULE } from "./modules/gradient-descent/module";
+import { LOGISTIC_REGRESSION_MODULE } from "./modules/logistic-regression/module";
+import { EVALUATION_MODULE } from "./modules/evaluation/module";
 
 /** Every module, in learning order, including ones still in development. */
-export const MODULES: readonly ModuleDef[] = [ARRAYS_MODULE, MATMUL_MODULE, REDUCTIONS_MODULE, RESHAPE_MODULE];
+export const MODULES: readonly ModuleDef[] = [
+  ARRAYS_MODULE,
+  MATMUL_MODULE,
+  REDUCTIONS_MODULE,
+  RESHAPE_MODULE,
+  LINEAR_REGRESSION_MODULE,
+  GRADIENT_DESCENT_MODULE,
+  LOGISTIC_REGRESSION_MODULE,
+  EVALUATION_MODULE,
+];
 
 /** The roadmap. Only phase 0 has modules so far. */
 export const PHASES: readonly Phase[] = [
   { number: 0, title: "NumPy for ML", modules: ["arrays", "matmul", "reductions", "reshape"] },
-  { number: 1, title: "Machine Learning", modules: [] },
+  {
+    number: 1,
+    title: "Machine Learning in NumPy",
+    modules: ["linear-regression", "gradient-descent", "logistic-regression", "evaluation"],
+  },
   { number: 2, title: "Deep Learning", modules: [] },
   { number: 3, title: "Transformers", modules: [] },
   { number: 4, title: "Reinforcement Learning", modules: [] },

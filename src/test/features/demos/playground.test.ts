@@ -73,7 +73,11 @@ describe("lesson playgrounds run in Pyodide", () => {
           expect(last.operations.at(-1)?.result, `${label}\n${code}`).toBeUndefined();
         }
         if (!demo.show?.length) {
-          expect(outcome.ok && outcome.frames.some((frame) => frame.operations.length > 0), `${label}\n${code}`).toBe(true);
+          // Something to draw: a recorded operation or a recorded loop (training demos).
+          expect(
+            outcome.ok && outcome.frames.some((frame) => frame.operations.length > 0 || frame.loop !== undefined),
+            `${label}\n${code}`,
+          ).toBe(true);
         }
       }
     }
