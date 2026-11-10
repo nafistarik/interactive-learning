@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { ProgressView } from "@/components/progress/ProgressView";
 
 /**
@@ -8,14 +6,9 @@ import { ProgressView } from "@/components/progress/ProgressView";
  */
 export default function ProgressPage() {
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
-      <nav className="text-sm text-subtle">
-        <Link href="/" className="underline">
-          Dashboard
-        </Link>{" "}
-        / Progress
-      </nav>
-      <h1 className="mt-4 text-3xl font-semibold tracking-tight">Progress</h1>
+    <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-10">
+      <h1 className="text-2xl font-semibold tracking-tight">Your progress</h1>
+      <p className="mt-1 text-muted">Saved in this browser only. Nothing is sent anywhere.</p>
       <ProgressView />
     </main>
   );

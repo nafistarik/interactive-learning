@@ -24,7 +24,7 @@ export function ProgressView() {
 
   return (
     <div className="mt-6 grid gap-8">
-      <dl className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
+      <dl className="card grid grid-cols-2 gap-4 p-5 text-sm sm:grid-cols-5">
         <div>
           <dt className="text-subtle">XP</dt>
           <dd className="text-lg font-medium">{totals.xp}</dd>
@@ -37,6 +37,12 @@ export function ProgressView() {
           <dt className="text-subtle">Lessons completed</dt>
           <dd className="text-lg font-medium">
             {totals.completedLessons} / {ARRAYS_MODULE.lessons.length}
+          </dd>
+        </div>
+        <div>
+          <dt className="text-subtle">Exercises passed</dt>
+          <dd className="text-lg font-medium">
+            {totals.passedExercises} / {EXERCISES.length}
           </dd>
         </div>
         <div>
