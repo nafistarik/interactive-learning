@@ -52,7 +52,8 @@ export function BroadcastView({
         </div>
       ) : null}
 
-      {phase === "align" ? (
+      {/* A failed step keeps the shape comparison on screen: it is the explanation. */}
+      {phase === "align" || (phase === "result" && !analysis.compatible) ? (
         <div className="grid gap-3">
           <table className="w-full text-sm">
             <thead className="text-left text-subtle">
