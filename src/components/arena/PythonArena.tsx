@@ -104,9 +104,12 @@ export default function PythonArena({
   const errorLine = frame?.status === "error" ? frame.startLine : null;
   const atLast = frames.length === 0 || index >= frames.length - 1;
   const animated = frame !== null && frame.operations.length > 0;
+  const lastStep = frame?.operations[frame.operations.length - 1];
+  // Point at operand definitions only when an operand's shape is the bug (element-wise or @);
+  // a failed reduce or reshape is fixed in its own arguments, on the failing line.
   const failedStep =
-    frame?.status === "error" && frame.error?.operandShapes
-      ? (frame.operations[frame.operations.length - 1] ?? null)
+    frame?.status === "error" && frame.error?.operandShapes && lastStep && (lastStep.kind === "binary" || lastStep.kind === "matmul")
+      ? lastStep
       : null;
   const fixDefinitions = useMemo(
     () =>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import type { ExerciseProgress } from "@/features/progress/model";
+import { InlineText } from "@/components/theory/InlineText";
 import type { Exercise, ValidationOutcome } from "@/features/validation/types";
 
 /**
@@ -52,11 +53,13 @@ export function ExercisePanel({
           ) : null}
           {exercise.title}
         </h3>
-        <p className="mt-1 text-sm text-muted">{exercise.objective}</p>
+        <p className="mt-1 text-sm text-muted">
+          <InlineText text={exercise.objective} />
+        </p>
       </div>
       <p className="text-sm">
         {exercise.type === "bug-hunt" ? "The code below has a bug. Find and fix it. " : null}
-        {exercise.problem}
+        <InlineText text={exercise.problem} />
       </p>
 
       {exercise.prelude ? (
@@ -74,7 +77,11 @@ export function ExercisePanel({
         </button>
         <span className="text-subtle">Checks run: {attempts}</span>
       </div>
-      {showHint ? <p className="text-sm text-muted">{exercise.hint}</p> : null}
+      {showHint ? (
+        <p className="text-sm text-muted">
+          <InlineText text={exercise.hint} />
+        </p>
+      ) : null}
 
       {verdict ? (
         verdict.passed ? (

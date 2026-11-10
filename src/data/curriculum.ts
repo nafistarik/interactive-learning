@@ -6,9 +6,12 @@ import type { LessonContent, LessonMeta, ModuleDef, Phase } from "@/features/con
 import type { Exercise } from "@/features/validation/types";
 
 import { ARRAYS_MODULE } from "./modules/arrays/module";
+import { MATMUL_MODULE } from "./modules/matmul/module";
+import { REDUCTIONS_MODULE } from "./modules/reductions/module";
+import { RESHAPE_MODULE } from "./modules/reshape/module";
 
 /** Every module, in learning order, including ones still in development. */
-export const MODULES: readonly ModuleDef[] = [ARRAYS_MODULE];
+export const MODULES: readonly ModuleDef[] = [ARRAYS_MODULE, MATMUL_MODULE, REDUCTIONS_MODULE, RESHAPE_MODULE];
 
 /** The roadmap. Only phase 0 has modules so far. */
 export const PHASES: readonly Phase[] = [
