@@ -5,9 +5,22 @@
  * learner's source text.
  */
 export const VALIDATOR_SOURCE = String.raw`
+import ast
 import json
 
 import numpy as np
+
+LOOP_NODES = (ast.For, ast.While, ast.ListComp, ast.SetComp, ast.DictComp, ast.GeneratorExp)
+NO_LOOP_PROBLEM = "Solve it without a Python loop: use one NumPy operation on the whole array."
+
+
+def has_loop(code):
+    """True when the code has a for/while loop or a comprehension. Unparsable code is not a loop."""
+    try:
+        tree = ast.parse(code)
+    except SyntaxError:
+        return False
+    return any(isinstance(node, LOOP_NODES) for node in ast.walk(tree))
 
 
 def same_value(actual, expected):
@@ -44,8 +57,11 @@ def compare(check, namespace, expected):
 def validate_exercise(code, runs_json, checks_json):
     """Returns JSON {"passed": bool, "problems": [...]} for the learner's code."""
     runs = json.loads(runs_json)
-    checks = json.loads(checks_json)
+    all_checks = json.loads(checks_json)
     problems = []
+    if any(check["kind"] == "no-loop" for check in all_checks) and has_loop(code):
+        problems.append(NO_LOOP_PROBLEM)
+    checks = [check for check in all_checks if check["kind"] != "no-loop"]
 
     for run in runs:
         reference = {"__name__": "__main__"}

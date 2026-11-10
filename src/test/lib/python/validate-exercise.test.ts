@@ -2,14 +2,15 @@ import type { PyodideInterface } from "pyodide";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import { findExercise, MODULES } from "@/data/curriculum";
-
-const EXERCISES = MODULES.flatMap((module) => module.exercises);
-const findExerciseForLesson = (lessonId: string) => findExercise(MODULES[0], lessonId);
 import type { Exercise } from "@/features/validation/types";
 import { installRecorder } from "@/lib/python/record-frames";
 import { validateExercise } from "@/lib/python/validate-exercise";
 
 import { loadTestPyodide } from "./load-test-pyodide";
+
+/** Every exercise of every module, including modules still in development. */
+const EXERCISES = MODULES.flatMap((mod) => mod.exercises);
+const findExerciseForLesson = (lessonId: string) => findExercise(MODULES[0], lessonId);
 
 /** Validates code against an exercise with the exercise's own runs and checks. */
 function check(pyodide: PyodideInterface, exercise: Exercise, code: string) {
@@ -40,6 +41,38 @@ describe("validateExercise with Pyodide and NumPy", () => {
         problems: [],
       });
     }
+  });
+
+  it("fails every bug hunt's starter code, so there is a bug to find (content test)", () => {
+    for (const exercise of EXERCISES.filter((item) => item.type === "bug-hunt")) {
+      expect(check(pyodide, exercise, exercise.starterCode).passed, exercise.id).toBe(false);
+    }
+  });
+
+  it("fails every exercise's starter code (nothing passes before the learner works)", () => {
+    for (const exercise of EXERCISES.filter((item) => item.id !== "ex03")) {
+      // Ex 03 starts from the working Part 9 code on purpose (brief Part 9).
+      expect(check(pyodide, exercise, exercise.starterCode).passed, exercise.id).toBe(false);
+    }
+  });
+
+  describe("no-loop check", () => {
+    const runs = [{ prelude: "import numpy as np\na = np.array([1, 2, 3])", reference: "import numpy as np\na = np.array([1, 2, 3])" }];
+    const checks = [{ kind: "no-loop" as const }, { kind: "result" as const, name: "out", expression: "a * 2" }];
+
+    it.each([
+      ["a for loop", "out = np.array([0, 0, 0])\nfor i in range(3):\n    out[i] = a[i] * 2"],
+      ["a while loop", "out = a.copy()\ni = 0\nwhile i < 3:\n    out[i] *= 2\n    i += 1"],
+      ["a comprehension", "out = np.array([x * 2 for x in a])"],
+    ])("rejects %s even when the values are right", (_label, code) => {
+      const outcome = validateExercise(pyodide, code, runs, checks);
+      expect(outcome.passed).toBe(false);
+      expect(outcome.problems[0]).toContain("without a Python loop");
+    });
+
+    it("accepts the vectorized solution", () => {
+      expect(validateExercise(pyodide, "out = a * 2", runs, checks)).toEqual({ passed: true, problems: [] });
+    });
   });
 
   it("fails Ex 01 when a shape is wrong", () => {

@@ -44,10 +44,20 @@ export function ExercisePanel({
       className="grid gap-3 card p-4"
     >
       <div>
-        <h3 className="text-base font-medium">{exercise.title}</h3>
+        <h3 className="text-base font-medium">
+          {exercise.type === "bug-hunt" ? (
+            <span className="mr-2 rounded-full bg-warn-soft px-2 py-0.5 align-middle text-xs font-medium text-warn">
+              Bug hunt
+            </span>
+          ) : null}
+          {exercise.title}
+        </h3>
         <p className="mt-1 text-sm text-muted">{exercise.objective}</p>
       </div>
-      <p className="text-sm">{exercise.problem}</p>
+      <p className="text-sm">
+        {exercise.type === "bug-hunt" ? "The code below has a bug. Find and fix it. " : null}
+        {exercise.problem}
+      </p>
 
       {exercise.prelude ? (
         <div className="grid gap-1">

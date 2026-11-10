@@ -10,13 +10,12 @@ export interface ValidationRun {
 /**
  * One thing to check after the learner's code ran. `result` checks a value against the
  * expression evaluated on the reference; `unchanged` requires the value to equal the reference
- * (the learner must not change it).
+ * (the learner must not change it); `no-loop` rejects `for`, `while` and comprehensions, for
+ * exercises whose point is vectorization (values alone cannot show it).
  */
-export interface ValidationCheck {
-  kind: "result" | "unchanged";
-  name: string;
-  expression: string;
-}
+export type ValidationCheck =
+  | { kind: "result" | "unchanged"; name: string; expression: string }
+  | { kind: "no-loop" };
 
 /** The verdict of one validation: passed, or what was wrong. */
 export interface ValidationOutcome {
@@ -35,6 +34,8 @@ export interface Exercise {
   /** Fixed setup shown above the editor and run before the learner's code. */
   prelude: string;
   hint: string;
+  /** `bug-hunt` starts from wrong code the learner must fix. Default `build`. */
+  type?: "build" | "bug-hunt";
   runs: ValidationRun[];
   checks: ValidationCheck[];
   /** A correct answer, used only by the tests. Never shown to the learner. */
