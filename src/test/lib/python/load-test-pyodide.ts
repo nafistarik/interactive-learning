@@ -2,6 +2,7 @@ import { join } from "node:path";
 
 import { loadPyodide, type PyodideInterface } from "pyodide";
 
+import { loadPackages, missingPackages } from "@/lib/python/packages";
 import { PYODIDE_INDEX_URL } from "@/lib/python/pyodide-version";
 
 /**
@@ -19,4 +20,17 @@ export async function loadTestPyodide(): Promise<PyodideInterface> {
   });
   await pyodide.loadPackage("numpy");
   return pyodide;
+}
+
+/** Optional packages loaded so far in the test runtime. */
+const loaded = new Set<string>();
+
+/**
+ * Loads optional packages (e.g. scikit-learn) the code imports, as the worker does.
+ *
+ * @param pyodide - The test Pyodide.
+ * @param code - The Python about to run.
+ */
+export async function preparePackages(pyodide: PyodideInterface, code: string): Promise<void> {
+  await loadPackages(pyodide, missingPackages(pyodide, code, loaded), loaded);
 }

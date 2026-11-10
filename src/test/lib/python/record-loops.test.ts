@@ -104,3 +104,15 @@ describe("recording loops and ufuncs", () => {
     expect(validateExercise(pyodide, "w = 2.0", runs, checks).problems[0]).toContain("The loss should go down.");
   });
 });
+
+describe("optional packages", () => {
+  it("loads scikit-learn when the code imports it, and nothing for plain NumPy", async () => {
+    const { loadTestPyodide: load, preparePackages } = await import("./load-test-pyodide");
+    const { missingPackages } = await import("@/lib/python/packages");
+    const pyodide = await load();
+    expect(missingPackages(pyodide, "import numpy as np\nx = 1", new Set())).toEqual([]);
+    expect(missingPackages(pyodide, "from sklearn.linear_model import LinearRegression", new Set())).toEqual(["sklearn"]);
+    await preparePackages(pyodide, "import sklearn");
+    expect(pyodide.runPython("import sklearn; sklearn.__version__")).toMatch(/^1\./);
+  }, 300_000);
+});

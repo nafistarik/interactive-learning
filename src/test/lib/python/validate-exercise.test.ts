@@ -6,7 +6,7 @@ import type { Exercise } from "@/features/validation/types";
 import { installRecorder } from "@/lib/python/record-frames";
 import { validateExercise } from "@/lib/python/validate-exercise";
 
-import { loadTestPyodide } from "./load-test-pyodide";
+import { loadTestPyodide, preparePackages } from "./load-test-pyodide";
 
 /** Every exercise of every module, including modules still in development. */
 const EXERCISES = MODULES.flatMap((mod) => mod.exercises);
@@ -34,8 +34,9 @@ describe("validateExercise with Pyodide and NumPy", () => {
     installRecorder(pyodide);
   }, 180_000);
 
-  it("passes every exercise's own solution (content test)", () => {
+  it("passes every exercise's own solution (content test)", async () => {
     for (const exercise of EXERCISES) {
+      await preparePackages(pyodide, [exercise.solution, ...exercise.runs.map((run) => run.reference)].join("\n"));
       expect(check(pyodide, exercise, exercise.solution), exercise.id).toEqual({
         passed: true,
         problems: [],

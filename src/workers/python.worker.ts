@@ -1,7 +1,8 @@
 import type { PyodideInterface } from "pyodide";
 
-import type { WorkerMessage, WorkerOutcome, WorkerRequest } from "@/features/execution/protocol";
+import type { LoadStage, WorkerMessage, WorkerOutcome, WorkerRequest } from "@/features/execution/protocol";
 import { PYODIDE_INDEX_URL } from "@/lib/python/pyodide-version";
+import { loadPackages, missingPackages } from "@/lib/python/packages";
 import { installRecorder, recordFrames } from "@/lib/python/record-frames";
 import { runPython } from "@/lib/python/run-python";
 import { validateExercise } from "@/lib/python/validate-exercise";
@@ -25,7 +26,7 @@ let pyodidePromise: Promise<PyodideInterface> | undefined;
  *
  * @param stage - The stage that has just started or finished.
  */
-function postStatus(stage: "runtime" | "numpy" | "ready"): void {
+function postStatus(stage: LoadStage): void {
   postMessage({ kind: "status", stage } satisfies WorkerMessage);
 }
 
@@ -55,6 +56,43 @@ function getPyodide(): Promise<PyodideInterface> {
   return pyodidePromise;
 }
 
+/** Optional packages (e.g. scikit-learn) already loaded in this worker, by import name. */
+const loadedPackages = new Set<string>();
+
+/**
+ * All Python a request will run, so its imports can be found before it runs.
+ *
+ * @param request - The request.
+ * @returns The sources joined.
+ */
+function sourcesOf(request: RuntimeRequest): string {
+  switch (request.kind) {
+    case "run":
+      return request.code;
+    case "record":
+      return `${request.prelude}\n${request.code}`;
+    case "validate":
+      return [request.code, ...request.runs.flatMap((run) => [run.prelude, run.reference])].join("\n");
+  }
+}
+
+/**
+ * Loads optional packages the request imports. While they download the page shows a loading
+ * status, and the client pauses the run limit (it restarts on "ready").
+ *
+ * @param pyodide - The loaded Pyodide instance.
+ * @param request - The request about to run.
+ */
+async function ensurePackages(pyodide: PyodideInterface, request: RuntimeRequest): Promise<void> {
+  const missing = missingPackages(pyodide, sourcesOf(request), loadedPackages);
+  if (missing.length === 0) {
+    return;
+  }
+  postStatus("packages");
+  await loadPackages(pyodide, missing, loadedPackages);
+  postStatus("ready");
+}
+
 /**
  * Runs one request that needs the loaded runtime and returns its outcome.
  *
@@ -63,6 +101,7 @@ function getPyodide(): Promise<PyodideInterface> {
  * @returns The outcome of the request.
  */
 async function runRequest(pyodide: PyodideInterface, request: RuntimeRequest): Promise<WorkerOutcome> {
+  await ensurePackages(pyodide, request);
   switch (request.kind) {
     case "run":
       return { kind: "run", result: await runPython(pyodide, request.code) };

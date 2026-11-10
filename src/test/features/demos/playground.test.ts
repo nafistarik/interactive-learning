@@ -6,7 +6,7 @@ import type { PlaygroundDemo } from "@/features/content/types";
 import { clampNumber, fillTemplate, initialValues, testValueSets } from "@/features/demos/playground";
 import { installRecorder, recordFrames } from "@/lib/python/record-frames";
 
-import { loadTestPyodide } from "../../lib/python/load-test-pyodide";
+import { loadTestPyodide, preparePackages } from "../../lib/python/load-test-pyodide";
 
 const SAMPLE: PlaygroundDemo = {
   title: "Sample",
@@ -59,10 +59,11 @@ describe("lesson playgrounds run in Pyodide", () => {
     installRecorder(pyodide);
   }, 180_000);
 
-  it("every playground records with every option", () => {
+  it("every playground records with every option", async () => {
     for (const { label, demo } of PLAYGROUNDS) {
       for (const values of testValueSets(demo)) {
         const code = fillTemplate(demo, values);
+        await preparePackages(pyodide, code);
         const outcome = recordFrames(pyodide, code);
         expect(outcome.ok, `${label}\n${code}`).toBe(true);
         const last = outcome.ok ? outcome.frames.at(-1) : undefined;

@@ -232,4 +232,23 @@ describe("PythonClient", () => {
 
     await expect(client.run("print(1)")).resolves.toEqual(OK_RESULT);
   });
+
+  it("pauses the run limit while an optional package downloads", async () => {
+    const worker = new FakeWorker(() => null);
+    const client = new PythonClient(() => worker, () => undefined);
+
+    let settled = false;
+    const pending = client.run("import sklearn").then((result) => {
+      settled = true;
+      return result;
+    });
+    emit(worker, { kind: "status", stage: "ready" });
+    emit(worker, { kind: "status", stage: "packages" });
+    await vi.advanceTimersByTimeAsync(RUN_TIMEOUT_MS * 3);
+    expect(settled).toBe(false);
+
+    emit(worker, { kind: "status", stage: "ready" });
+    await vi.advanceTimersByTimeAsync(RUN_TIMEOUT_MS);
+    await expect(pending).resolves.toEqual({ ok: false, stdout: "", error: STOPPED_MESSAGE });
+  });
 });

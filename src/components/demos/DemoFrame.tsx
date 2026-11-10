@@ -38,7 +38,9 @@ export function DemoFrame({
           <p className="text-sm text-subtle">
             {recording.runtime.state === "loading" && recording.runtime.stage === "numpy"
               ? "Loading NumPy…"
-              : "Loading Python… The first load takes a few seconds."}
+              : recording.runtime.state === "loading" && recording.runtime.stage === "packages"
+                ? "Loading extra Python packages (first time only)…"
+                : "Loading Python… The first load takes a few seconds."}
           </p>
         ) : recording?.state === "failed" ? (
           <p className="text-sm text-danger">{recording.error}</p>

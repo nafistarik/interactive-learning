@@ -4,7 +4,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { MODULES } from "@/data/curriculum";
 import { runPython } from "@/lib/python/run-python";
 
-import { loadTestPyodide } from "../lib/python/load-test-pyodide";
+import { loadTestPyodide, preparePackages } from "../lib/python/load-test-pyodide";
 
 /** Every lesson of every module, including modules still in development. */
 const LESSON_CONTENT = MODULES.flatMap((module) =>
@@ -55,6 +55,7 @@ describe("lesson code examples run in Pyodide", () => {
     "%s",
     async (_label, example) => {
       // Each example runs in a fresh namespace, as the learner would run it alone.
+      await preparePackages(pyodide, example.code);
       const result = await runPython(pyodide, `exec(${JSON.stringify(example.code)}, {})`);
       expect(result).toEqual({ ok: true, stdout: example.output });
     },

@@ -37,7 +37,11 @@ function describeStatus(status: RuntimeStatus): string {
     case "idle":
       return "Python not loaded yet.";
     case "loading":
-      return status.stage === "runtime" ? "Loading Python…" : "Loading NumPy…";
+      return status.stage === "runtime"
+        ? "Loading Python…"
+        : status.stage === "numpy"
+          ? "Loading NumPy…"
+          : "Loading extra Python packages (first time only)…";
     case "ready":
       return "Python and NumPy ready.";
     case "failed":

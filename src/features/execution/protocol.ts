@@ -3,8 +3,11 @@ import type { ValidationCheck, ValidationOutcome, ValidationRun } from "@/featur
 
 import type { RecordingOutcome } from "./frames";
 
-/** Stages of loading the Python runtime, in order. `ready` means NumPy is loaded too. */
-export type LoadStage = "runtime" | "numpy" | "ready";
+/**
+ * Stages of loading the Python runtime, in order. `ready` means NumPy is loaded too.
+ * `packages` is sent later, while an optional package (e.g. scikit-learn) downloads.
+ */
+export type LoadStage = "runtime" | "numpy" | "packages" | "ready";
 
 /** Messages the page sends to the Python worker. */
 export type WorkerRequest =

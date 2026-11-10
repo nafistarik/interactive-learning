@@ -29,7 +29,7 @@ export function CodeExample({ code, output }: { code: string; output: string }) 
   }
 
   const loadingText =
-    runtime.state === "loading" ? (runtime.stage === "runtime" ? "Loading Python…" : "Loading NumPy…") : "Running…";
+    runtime.state === "loading" ? (runtime.stage === "runtime" ? "Loading Python…" : runtime.stage === "numpy" ? "Loading NumPy…" : "Loading extra Python packages…") : "Running…";
 
   return (
     <figure className="overflow-hidden rounded-card border border-line">

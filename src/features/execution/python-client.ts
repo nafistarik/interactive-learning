@@ -205,6 +205,8 @@ export class PythonClient {
       case "status":
         if (message.stage === "ready") {
           this.markReady();
+        } else if (message.stage === "packages") {
+          this.pauseRunLimits();
         }
         this.onStatus(
           message.stage === "ready"
@@ -260,6 +262,20 @@ export class PythonClient {
     this.clearLoadTimer();
     for (const [id, request] of this.pending) {
       request.timer ??= setTimeout(() => this.stop(id), RUN_TIMEOUT_MS);
+    }
+  }
+
+  /**
+   * An optional package is downloading: its time does not count against waiting requests.
+   * shortcut: a stalled package download has no limit of its own; add one if it happens.
+   */
+  private pauseRunLimits(): void {
+    this.ready = false;
+    for (const request of this.pending.values()) {
+      if (request.timer) {
+        clearTimeout(request.timer);
+        request.timer = null;
+      }
     }
   }
 
