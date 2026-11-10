@@ -8,9 +8,10 @@ export const PYTHON_READY_MS = 90_000;
  *
  * @param page - The page.
  * @param lessonId - Two-digit lesson id.
+ * @param moduleSlug - The module; Module 0.1 by default.
  */
-export async function openPractice(page: Page, lessonId: string): Promise<void> {
-  await page.goto(`/learn/arrays/lesson/${lessonId}`);
+export async function openPractice(page: Page, lessonId: string, moduleSlug = "arrays"): Promise<void> {
+  await page.goto(`/learn/${moduleSlug}/lesson/${lessonId}`);
   await page.getByRole("tab", { name: "practice" }).click();
   await expect(page.locator("#panel-practice").getByText("Python and NumPy ready.")).toBeVisible({ timeout: PYTHON_READY_MS });
 }
@@ -45,4 +46,22 @@ export function verdict(page: Page) {
 /** A button inside the Practice view by its visible name. */
 export function practiceButton(page: Page, name: string) {
   return page.locator("#panel-practice").getByRole("button", { name, exact: true });
+}
+
+/**
+ * Sets the editor content exactly (no auto-indent), for multi-line solutions taken from the
+ * lesson data. Uses Monaco's own model API, so the page gets the same change event as typing.
+ *
+ * @param page - The page.
+ * @param code - The new code.
+ */
+export async function setCodeExact(page: Page, code: string): Promise<void> {
+  await page.waitForFunction(() => {
+    const monaco = (window as unknown as { monaco?: { editor: { getEditors: () => unknown[] } } }).monaco;
+    return (monaco?.editor.getEditors().length ?? 0) > 0;
+  });
+  await page.evaluate((text) => {
+    const monaco = (window as unknown as { monaco: { editor: { getEditors: () => { setValue: (v: string) => void }[] } } }).monaco;
+    monaco.editor.getEditors().at(-1)?.setValue(text);
+  }, code);
 }

@@ -1,5 +1,10 @@
 import { expect, test } from "@playwright/test";
 
+import { AVAILABLE_MODULES } from "../src/data/curriculum";
+
+/** Lessons across every open module, as the dashboard counts them. */
+const LESSONS = AVAILABLE_MODULES.reduce((sum, mod) => sum + mod.lessons.length, 0);
+
 /* Brief Part 4 and 15: routes, links, 404, knowledge check, XP, reset. */
 
 test("every lesson opens, and previous/next walk the module in order", async ({ page }) => {
@@ -72,13 +77,13 @@ test("a corrupt saved progress starts fresh instead of crashing", async ({ page 
   await page.goto("/");
   await page.evaluate(() => localStorage.setItem("vlp:progress:v1", "{not json"));
   await page.reload();
-  await expect(page.getByText("0 / 8")).toBeVisible();
+  await expect(page.getByLabel("Your progress")).toContainText(`0 / ${LESSONS}`);
 });
 
 test("MVP 1 progress is migrated to v2 and kept", async ({ page }) => {
   await page.goto("/");
   // Wait until the page has read (and saved) its progress, so it cannot overwrite the v1 value.
-  await expect(page.getByLabel("Your progress")).toContainText("0 / 8");
+  await expect(page.getByLabel("Your progress")).toContainText(`0 / ${LESSONS}`);
   await page.evaluate(() => {
     localStorage.clear();
     localStorage.setItem(
@@ -95,7 +100,7 @@ test("MVP 1 progress is migrated to v2 and kept", async ({ page }) => {
   await page.reload();
   const summary = page.getByLabel("Your progress");
   await expect(summary).toContainText("150");
-  await expect(summary).toContainText("1 / 8");
+  await expect(summary).toContainText(`1 / ${LESSONS}`);
   await page.getByRole("link", { name: "Continue learning" }).click();
   await expect(page).toHaveURL(/\/learn\/arrays\/lesson\/06$/);
   await expect(page.getByLabel("Lesson progress")).toContainText("Passed ★★★");
