@@ -16,7 +16,7 @@ export const LOGISTIC_REGRESSION_MODULE: ModuleDef = {
     "Train a logistic regression with gradient descent, using dw = X.T @ (p - y) / n and db = np.mean(p - y)",
     "Measure the accuracy of the predicted labels",
   ],
-  available: false,
+  available: true,
   lessons: [
     { id: "01", title: "Classification and Probabilities" },
     { id: "02", title: "The Sigmoid Function" },

@@ -37,7 +37,8 @@ describe("loop chart data", () => {
 
 describe("axis helpers", () => {
   it("pads a range and widens a flat one", () => {
-    expect(axisRange([0, 10])).toEqual([-0.6, 10.6]);
+    expect(axisRange([0, 10])).toEqual([0, 10.6]);
+    expect(axisRange([-10, 0])).toEqual([-10.6, 0.6]);
     expect(axisRange([3, 3])).toEqual([2, 4]);
   });
 

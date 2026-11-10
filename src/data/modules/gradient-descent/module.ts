@@ -16,7 +16,7 @@ export const GRADIENT_DESCENT_MODULE: ModuleDef = {
     "Recognise a learning rate that is too small, a good one and one that makes training diverge",
     "Stop training when the loss stops improving",
   ],
-  available: false,
+  available: true,
   lessons: [
     { id: "01", title: "Slopes and Gradients" },
     { id: "02", title: "The Gradient of the Loss" },

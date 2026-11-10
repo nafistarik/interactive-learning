@@ -16,7 +16,7 @@ export const EVALUATION_MODULE: ModuleDef = {
     "Compute precision and recall, and describe how they trade off as the threshold moves",
     "Check a from-scratch model and its metrics against scikit-learn",
   ],
-  available: false,
+  available: true,
   lessons: [
     { id: "01", title: "Train and Test Data" },
     { id: "02", title: "Accuracy and the Confusion Matrix" },

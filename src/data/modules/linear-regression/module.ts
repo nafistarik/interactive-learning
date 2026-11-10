@@ -16,7 +16,7 @@ export const LINEAR_REGRESSION_MODULE: ModuleDef = {
     "Fit a line by trying many values of w in a loop and keeping the one with the lowest loss",
     "Explain why trying every parameter value does not scale to many parameters",
   ],
-  available: false,
+  available: true,
   lessons: [
     { id: "01", title: "Models as Functions" },
     { id: "02", title: "Predictions with X @ w + b" },

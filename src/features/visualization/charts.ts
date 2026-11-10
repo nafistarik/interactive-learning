@@ -84,7 +84,8 @@ export function axisRange(values: number[]): [number, number] {
     return [min - 1, max + 1];
   }
   const pad = (max - min) * 0.06;
-  return [min - pad, max + pad];
+  // Values that never go below zero (a loss, a count) keep an axis that starts at zero.
+  return [min >= 0 ? Math.max(0, min - pad) : min - pad, max + pad];
 }
 
 /**

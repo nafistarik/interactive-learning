@@ -9,6 +9,8 @@ const NEW_MODULES = AVAILABLE_MODULES.filter((mod) => mod.slug !== "arrays");
 
 for (const mod of NEW_MODULES) {
   test.describe(`Module ${mod.number} ${mod.title}`, () => {
+    test.setTimeout(180_000);
+
     test("overview and every lesson open; the first playground draws from a real run", async ({ page }) => {
       await page.goto(`/learn/${mod.slug}`);
       await expect(page.getByRole("heading", { name: mod.title })).toBeVisible();
@@ -28,7 +30,8 @@ for (const mod of NEW_MODULES) {
           await expect(page.locator("#panel-practice")).toContainText("Bug hunt");
         }
         await practiceButton(page, "Check solution").click();
-        await expect(verdict(page)).toContainText("Not yet");
+        // The first check may download an optional package (scikit-learn) first.
+        await expect(verdict(page)).toContainText("Not yet", { timeout: 120_000 });
 
         await setCodeExact(page, exercise.solution);
         await practiceButton(page, "Check solution").click();
