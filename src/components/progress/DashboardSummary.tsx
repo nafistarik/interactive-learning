@@ -22,7 +22,7 @@ export function DashboardSummary() {
     <section className="card mt-8 p-6" aria-labelledby="module-title">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="font-mono text-xs text-subtle">Phase 0 · {ARRAYS_MODULE.lessons.length} lessons</p>
+          <p className="font-mono text-xs text-subtle">Phase 0 · Module 0.1 · {ARRAYS_MODULE.lessons.length} lessons</p>
           <h2 id="module-title" className="mt-1 text-lg font-semibold">
             {ARRAYS_MODULE.title}
           </h2>

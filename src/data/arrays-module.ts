@@ -63,7 +63,7 @@ export function findLesson(lessonId: string): Lesson | undefined {
 
 /** Roadmap phases shown on the dashboard (brief Part 4.1). Only phase 0 has pages. */
 export const ROADMAP = [
-  { title: "Arrays, Vectorization & Broadcasting", available: true },
+  { title: "NumPy for ML", available: true },
   { title: "Machine Learning", available: false },
   { title: "Deep Learning", available: false },
   { title: "Transformers", available: false },

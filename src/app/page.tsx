@@ -30,6 +30,9 @@ export default function DashboardPage() {
               <span>
                 <span className="font-mono text-xs text-subtle">Phase {index}</span>
                 <span className="ml-3 font-medium">{phase.title}</span>
+                {phase.available ? (
+                  <span className="ml-2 hidden text-subtle sm:inline">· Module 0.1 available, more modules coming</span>
+                ) : null}
               </span>
               {phase.available ? (
                 <span className="rounded-full bg-success-soft px-2 py-0.5 text-xs font-medium text-success">

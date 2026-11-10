@@ -15,7 +15,7 @@ const TOTAL_MINUTES = LESSON_CONTENT.reduce((sum, lesson) => sum + lesson.estima
 export default function ArraysModulePage() {
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-10">
-      <p className="font-mono text-xs text-subtle">Phase 0 · Module</p>
+      <p className="font-mono text-xs text-subtle">Phase 0 · NumPy for ML · Module 0.1</p>
       <h1 className="mt-1 text-2xl font-semibold tracking-tight">{ARRAYS_MODULE.title}</h1>
       <p className="mt-2 max-w-2xl text-muted">{ARRAYS_MODULE.description}</p>
       <p className="mt-3 flex items-center gap-1.5 text-sm text-subtle">
