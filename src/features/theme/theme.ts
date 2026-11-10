@@ -1,18 +1,15 @@
+"use client";
+
 import { useSyncExternalStore } from "react";
 
 import { getBrowserStorage, writeStoredValue } from "@/lib/storage/local-storage";
 
+import { THEME_KEY } from "./theme-script";
+
+export { THEME_KEY };
+
 /** The two themes (brief Part 12). */
 export type Theme = "light" | "dark";
-
-/** Storage key of the theme the user picked. Missing means "follow the system". */
-export const THEME_KEY = "vlp:theme";
-
-/**
- * Runs before the first paint (inline in `<head>`): applies the picked theme, or the system
- * theme when none was picked, so the page never flashes the wrong colours.
- */
-export const THEME_SCRIPT = `(function(){var d=document.documentElement,t=null;try{t=localStorage.getItem("${THEME_KEY}")}catch(e){}if(t!=="light"&&t!=="dark"){t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}d.dataset.theme=t;d.style.colorScheme=t})()`;
 
 /**
  * Applies a theme to the page and remembers it as the user's pick.
