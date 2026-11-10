@@ -3,29 +3,43 @@
 import Link from "next/link";
 
 import { ProgressBar } from "@/components/ui/ProgressBar";
-import { ARRAYS_MODULE, findLesson } from "@/data/arrays-module";
-import { totalsOf } from "@/features/progress/model";
+import { findModule, lessonKeysOf, resolveLessonKey } from "@/data/curriculum";
+import { completionOf } from "@/features/progress/model";
 import { useProgress } from "@/features/progress/progress-context";
 
-/** Overall module progress with the Start or Continue button (brief Part 4.2). */
-export function ModuleProgress() {
+/**
+ * A module's completion with the Start or Continue button (brief Part 4.2). Continue opens the
+ * learner's current lesson when it is in this module, else the first unfinished lesson.
+ *
+ * @param props.moduleSlug - The module.
+ */
+export function ModuleProgress({ moduleSlug }: { moduleSlug: string }) {
   const { state, loaded } = useProgress();
-  const totals = totalsOf(state);
-  const started = loaded && state.currentLesson !== null;
-  const target = findLesson(state.currentLesson ?? "") ?? ARRAYS_MODULE.lessons[0];
+  const mod = findModule(moduleSlug);
+  if (!mod) {
+    return null;
+  }
+  const keys = lessonKeysOf(mod);
+  const { completed, percent } = completionOf(state, keys);
+  const current = state.currentLesson ? resolveLessonKey(state.currentLesson) : undefined;
+  const target =
+    current?.module.slug === mod.slug
+      ? current.lesson
+      : (mod.lessons.find((_, index) => !state.completedLessons.includes(keys[index])) ?? mod.lessons[0]);
+  const started = loaded && keys.some((key) => key === state.currentLesson || state.completedLessons.includes(key));
 
   return (
     <div className="card mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 p-4">
       <div className="grid min-w-48 flex-1 gap-2">
         <div className="flex justify-between text-sm">
           <span className="text-muted">
-            {loaded ? `${totals.completedLessons} of ${ARRAYS_MODULE.lessons.length} lessons completed` : "Loading progress…"}
+            {loaded ? `${completed} of ${mod.lessons.length} lessons completed` : "Loading progress…"}
           </span>
-          <span className="font-medium tabular-nums">{loaded ? `${totals.modulePercent}%` : "–"}</span>
+          <span className="font-medium tabular-nums">{loaded ? `${percent}%` : "–"}</span>
         </div>
-        <ProgressBar percent={loaded ? totals.modulePercent : 0} label="Module completion" />
+        <ProgressBar percent={loaded ? percent : 0} label={`Module ${mod.number} completion`} />
       </div>
-      <Link href={`/learn/arrays/lesson/${target.id}`} className="btn-primary">
+      <Link href={`/learn/${mod.slug}/lesson/${target.id}`} className="btn-primary">
         {started ? `Continue: lesson ${target.id}` : "Start the module"}
       </Link>
     </div>

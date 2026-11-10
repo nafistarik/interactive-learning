@@ -14,12 +14,16 @@ export interface ExerciseProgress {
   stars: 0 | 1 | 2 | 3;
 }
 
-/** The whole saved progress, version 1. */
+/**
+ * The whole saved progress, version 2. Lessons are keyed `"<module>/<lesson>"` (e.g.
+ * `"arrays/07"`); exercise ids are unique across modules.
+ */
 export interface ProgressState {
-  version: 1;
+  version: 2;
+  /** Key of the lesson the learner is on. */
   currentLesson: string | null;
   completedLessons: string[];
-  /** Lessons whose knowledge check passed (every question answered correctly). */
+  /** Lesson keys whose knowledge check passed (every question answered correctly). */
   passedChecks: string[];
   exercises: Record<string, ExerciseProgress>;
 }
@@ -28,16 +32,13 @@ export interface ProgressState {
 export const XP_PER_LESSON = 50;
 export const XP_PER_EXERCISE = 100;
 
-/** Number of lessons in the module (brief Part 11: completion = completed ÷ 8). */
-export const MODULE_LESSON_COUNT = 8;
-
 /**
  * A fresh, empty progress.
  *
  * @returns The empty state.
  */
 export function emptyProgress(): ProgressState {
-  return { version: 1, currentLesson: null, completedLessons: [], passedChecks: [], exercises: {} };
+  return { version: 2, currentLesson: null, completedLessons: [], passedChecks: [], exercises: {} };
 }
 
 /**
@@ -128,8 +129,6 @@ export interface ProgressTotals {
   stars: number;
   completedLessons: number;
   passedExercises: number;
-  /** Completed lessons over the module size, as a whole percentage. */
-  modulePercent: number;
 }
 
 /**
@@ -146,8 +145,19 @@ export function totalsOf(state: ProgressState): ProgressTotals {
     stars: passed.reduce((sum, exercise) => sum + exercise.stars, 0),
     completedLessons,
     passedExercises: passed.length,
-    modulePercent: Math.round((completedLessons / MODULE_LESSON_COUNT) * 100),
   };
+}
+
+/**
+ * Completion of one module (brief Part 11: completed lessons ÷ lessons in the module).
+ *
+ * @param state - The current progress.
+ * @param lessonKeys - Keys of every lesson of the module.
+ * @returns Completed lesson count and the whole percentage.
+ */
+export function completionOf(state: ProgressState, lessonKeys: string[]): { completed: number; percent: number } {
+  const completed = lessonKeys.filter((key) => state.completedLessons.includes(key)).length;
+  return { completed, percent: lessonKeys.length === 0 ? 0 : Math.round((completed / lessonKeys.length) * 100) };
 }
 
 /** What a lesson's row says on the module and progress pages. */

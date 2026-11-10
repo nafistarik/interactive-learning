@@ -74,13 +74,16 @@ function frameOutput(frame: ExecutionFrame): string {
  *
  * @param props.starterCode - The code the editor starts with and Reset code returns to.
  * @param props.exercise - The exercise practised here, if the lesson has one.
+ * @param props.lessonKey - The lesson's progress key, completed when the exercise passes.
  */
 export default function PythonArena({
   starterCode,
   exercise,
+  lessonKey,
 }: {
   starterCode: string;
   exercise?: Exercise;
+  lessonKey: string;
 }) {
   const [code, setCode] = useState(starterCode);
   const [recording, setRecording] = useState<RecordingOutcome | null>(null);
@@ -166,7 +169,7 @@ export default function PythonArena({
     const outcome = await client.validate(code, exercise.runs, exercise.checks);
     setVerdict(outcome);
     setAttempts((value) => value + 1);
-    progress.recordCheck(exercise.id, exercise.lessonId, outcome.passed);
+    progress.recordCheck(exercise.id, lessonKey, outcome.passed);
     setChecking(false);
   }
 

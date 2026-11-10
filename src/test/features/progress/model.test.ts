@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  completionOf,
   emptyProgress,
   lessonStatusOf,
   markLessonCompleted,
@@ -77,7 +78,6 @@ describe("totalsOf", () => {
       stars: 3,
       completedLessons: 1,
       passedExercises: 1,
-      modulePercent: 13,
     });
   });
 
@@ -87,7 +87,6 @@ describe("totalsOf", () => {
       stars: 0,
       completedLessons: 0,
       passedExercises: 0,
-      modulePercent: 0,
     });
   });
 });
@@ -133,5 +132,20 @@ describe("lesson completion (brief Part 11)", () => {
 
     expect(state.passedChecks).toEqual(["01"]);
     expect(totalsOf(state).xp).toBe(50);
+  });
+});
+
+describe("completionOf (brief Part 11: completed lessons over the module's lessons)", () => {
+  const keys = ["arrays/01", "arrays/02", "arrays/03", "arrays/04", "arrays/05", "arrays/06", "arrays/07", "arrays/08"];
+
+  it("counts only this module's lessons", () => {
+    let state = recordKnowledgeCheck(emptyProgress(), "arrays/01", undefined);
+    state = recordKnowledgeCheck(state, "matmul/01", undefined);
+
+    expect(completionOf(state, keys)).toEqual({ completed: 1, percent: 13 });
+  });
+
+  it("is zero for an empty module", () => {
+    expect(completionOf(emptyProgress(), [])).toEqual({ completed: 0, percent: 0 });
   });
 });

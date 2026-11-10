@@ -1,6 +1,19 @@
 import type { Exercise } from "@/features/validation/types";
 
-import { BROADCASTING_STARTER } from "./arrays-module";
+/** Starter code of the Part 9 broadcasting scenario (lesson 07, Exercise 03). */
+export const BROADCASTING_STARTER = [
+  "import numpy as np",
+  "",
+  "X = np.array([",
+  "    [1, 2],",
+  "    [3, 4],",
+  "    [5, 6]",
+  "])",
+  "",
+  "w = np.array([2, 3])",
+  "",
+  "out = X * w",
+].join("\n");
 
 /** Shared setup for Exercise 02: two vectors of the same length (lesson 06). */
 const ELEMENTWISE_PRELUDE = [
@@ -36,7 +49,7 @@ const PRACTICAL_HIDDEN = [
  * Exercises of the MVP (brief Part 10). The brief does not name the arrays of Exercise 01, so
  * the arrays below are a design decision: a 1D array, a 3 by 2 matrix and a 2 by 2 by 2 array.
  */
-export const EXERCISES: readonly Exercise[] = [
+export const ARRAYS_EXERCISES: readonly Exercise[] = [
   {
     id: "ex01",
     lessonId: "03",
@@ -126,13 +139,3 @@ export const EXERCISES: readonly Exercise[] = [
     solution: "out = X * w + b",
   },
 ];
-
-/**
- * Finds the exercise of a lesson, if it has one.
- *
- * @param lessonId - The lesson's two-digit id.
- * @returns The exercise, or `undefined`.
- */
-export function findExerciseForLesson(lessonId: string): Exercise | undefined {
-  return EXERCISES.find((exercise) => exercise.lessonId === lessonId);
-}

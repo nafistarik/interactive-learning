@@ -3,6 +3,8 @@
  * the UI only renders it, so a translation can replace the data without touching components.
  */
 
+import type { Exercise } from "@/features/validation/types";
+
 /** Interactive demos a lesson can embed. Each id maps to one component. */
 export type DemoId =
   | "edit-array"
@@ -55,4 +57,37 @@ export interface LessonContent {
   knowledgeCheck: KnowledgeQuestion[];
   /** Starter code of the Practice view for lessons without an exercise. */
   practiceStarter?: string;
+}
+
+/** One lesson in a module's table of contents. `id` is the URL segment, `01`, `02`, … */
+export interface LessonMeta {
+  id: string;
+  title: string;
+}
+
+/**
+ * One module of the curriculum: its lessons, their theory and its exercises. A module with
+ * `available: false` has no pages yet; it shows as coming soon.
+ */
+export interface ModuleDef {
+  /** URL segment, e.g. `arrays`. */
+  slug: string;
+  /** Number within its phase, e.g. `0.1`. */
+  number: string;
+  title: string;
+  description: string;
+  objectives: string[];
+  available: boolean;
+  lessons: LessonMeta[];
+  /** Theory per lesson, in lesson order. */
+  content: readonly LessonContent[];
+  exercises: readonly Exercise[];
+}
+
+/** A phase of the roadmap (e.g. Phase 0, NumPy for ML) and the modules it holds. */
+export interface Phase {
+  number: number;
+  title: string;
+  /** Module slugs in order. A phase without modules is shown as coming soon. */
+  modules: string[];
 }

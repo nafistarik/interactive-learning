@@ -52,15 +52,18 @@ function Block({ block }: { block: ContentBlock }) {
  * The Theory view (brief Part 4.3 and 5): explanation, interactive demo and knowledge check.
  *
  * @param props.content - The lesson content.
+ * @param props.lessonKey - The lesson's progress key, `"<module>/<lesson>"`.
  * @param props.exerciseId - The lesson's exercise, if any, for the completion rule.
  * @param props.onOpenPractice - Switches to the Practice view.
  */
 export function TheoryView({
   content,
+  lessonKey,
   exerciseId,
   onOpenPractice,
 }: {
   content: LessonContent;
+  lessonKey: string;
   exerciseId: string | undefined;
   onOpenPractice: () => void;
 }) {
@@ -78,10 +81,10 @@ export function TheoryView({
       ))}
 
       <KnowledgeCheck
-        lessonId={content.lessonId}
+        lessonId={lessonKey.replace("/", "-")}
         questions={content.knowledgeCheck}
-        passedBefore={state.passedChecks.includes(content.lessonId)}
-        onPassed={() => passKnowledgeCheck(content.lessonId, exerciseId)}
+        passedBefore={state.passedChecks.includes(lessonKey)}
+        onPassed={() => passKnowledgeCheck(lessonKey, exerciseId)}
       />
 
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-line bg-surface p-4">

@@ -5,38 +5,34 @@ import Link from "next/link";
 
 import { InlineText } from "@/components/theory/InlineText";
 
-import { findLesson } from "@/data/arrays-module";
-import { findExerciseForLesson } from "@/data/exercises";
+import { findExercise, findModule, lessonKey } from "@/data/curriculum";
 import { LESSON_STATUS_TEXT } from "@/data/ui-text";
 import { lessonStatusOf } from "@/features/progress/model";
 import { useProgress } from "@/features/progress/progress-context";
 
-/** A lesson row as the module page passes it in. */
-export interface LessonRow {
-  lessonId: string;
-  summary: string;
-  minutes: number;
-}
-
 /**
  * The module's lessons with their status and exercise marks (brief Part 4.2).
  *
- * @param props.lessons - The lessons in order.
+ * @param props.moduleSlug - The module whose lessons to list.
  */
-export function LessonList({ lessons }: { lessons: LessonRow[] }) {
+export function LessonList({ moduleSlug }: { moduleSlug: string }) {
   const { state, loaded } = useProgress();
+  const mod = findModule(moduleSlug);
+  if (!mod) {
+    return null;
+  }
 
   return (
     <ol className="mt-3 grid gap-2">
-      {lessons.map((row) => {
-        const lesson = findLesson(row.lessonId);
-        const exercise = findExerciseForLesson(row.lessonId);
-        const status = lessonStatusOf(state, row.lessonId, exercise?.id);
+      {mod.content.map((row) => {
+        const lesson = mod.lessons.find((item) => item.id === row.lessonId);
+        const exercise = findExercise(mod, row.lessonId);
+        const status = lessonStatusOf(state, lessonKey(mod.slug, row.lessonId), exercise?.id);
         const Icon = status === "completed" ? CheckCircle2 : status === "in-progress" ? CircleDot : Circle;
         return (
           <li key={row.lessonId}>
             <Link
-              href={`/learn/arrays/lesson/${row.lessonId}`}
+              href={`/learn/${mod.slug}/lesson/${row.lessonId}`}
               className="card flex items-start gap-4 p-4 hover:border-line-strong"
             >
               <span className="font-mono text-sm text-subtle">{row.lessonId}</span>
@@ -46,7 +42,7 @@ export function LessonList({ lessons }: { lessons: LessonRow[] }) {
                   <InlineText text={row.summary} />
                 </span>
                 <span className="flex flex-wrap gap-3 text-xs text-subtle">
-                  <span>{row.minutes} min</span>
+                  <span>{row.estimatedMinutes} min</span>
                   {exercise ? (
                     <span className="flex items-center gap-1 text-tone-weight">
                       <Dumbbell className="size-3.5" aria-hidden /> Exercise: {exercise.title}

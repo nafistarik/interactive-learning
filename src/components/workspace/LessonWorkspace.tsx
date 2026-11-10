@@ -4,9 +4,7 @@ import { ChevronLeft, ChevronRight, PanelLeftClose, PanelLeftOpen } from "lucide
 import Link from "next/link";
 import { useEffect, useRef, useState, type KeyboardEvent } from "react";
 
-import { ARRAYS_MODULE, findLesson } from "@/data/arrays-module";
-import { findExerciseForLesson } from "@/data/exercises";
-import { findLessonContent } from "@/data/lessons";
+import { findExercise, findLesson, findLessonContent, findModule, lessonKey } from "@/data/curriculum";
 import { LESSON_STATUS_TEXT } from "@/data/ui-text";
 import { PythonRuntimeProvider } from "@/features/execution/python-runtime-context";
 import { lessonStatusOf } from "@/features/progress/model";
@@ -27,12 +25,15 @@ type View = (typeof VIEWS)[number];
  * previous/next, a collapsible lesson sidebar, and the Theory and Practice views. Practice is
  * mounted the first time it opens and then kept, so switching views keeps the code and frames.
  *
- * @param props.lessonId - A valid lesson id (the route has already 404ed unknown ids).
+ * @param props.moduleSlug - An available module (the route has already 404ed unknown ones).
+ * @param props.lessonId - A valid lesson id of that module.
  */
-export function LessonWorkspace({ lessonId }: { lessonId: string }) {
-  const lesson = findLesson(lessonId);
-  const content = findLessonContent(lessonId);
-  const exercise = findExerciseForLesson(lessonId);
+export function LessonWorkspace({ moduleSlug, lessonId }: { moduleSlug: string; lessonId: string }) {
+  const mod = findModule(moduleSlug);
+  const lesson = mod && findLesson(mod, lessonId);
+  const content = mod && findLessonContent(mod, lessonId);
+  const exercise = mod && findExercise(mod, lessonId);
+  const key = lessonKey(moduleSlug, lessonId);
   const { state, loaded, visitLesson } = useProgress();
   const [view, setView] = useState<View>("theory");
   const [practiceOpened, setPracticeOpened] = useState(false);
@@ -40,18 +41,18 @@ export function LessonWorkspace({ lessonId }: { lessonId: string }) {
   const tabRefs = useRef<Record<View, HTMLButtonElement | null>>({ theory: null, practice: null });
 
   useEffect(() => {
-    visitLesson(lessonId);
-  }, [lessonId, visitLesson]);
+    visitLesson(key);
+  }, [key, visitLesson]);
 
-  if (!lesson || !content) {
+  if (!mod || !lesson || !content) {
     return null;
   }
 
-  const position = ARRAYS_MODULE.lessons.findIndex((item) => item.id === lessonId);
-  const previous = ARRAYS_MODULE.lessons[position - 1];
-  const next = ARRAYS_MODULE.lessons[position + 1];
-  const status = lessonStatusOf(state, lessonId, exercise?.id);
-  const checkPassed = state.passedChecks.includes(lessonId);
+  const position = mod.lessons.findIndex((item) => item.id === lessonId);
+  const previous = mod.lessons[position - 1];
+  const next = mod.lessons[position + 1];
+  const status = lessonStatusOf(state, key, exercise?.id);
+  const checkPassed = state.passedChecks.includes(key);
   const exerciseProgress = exercise ? state.exercises[exercise.id] : undefined;
 
   /** Opens a view. Practice mounts the first time and hides the sidebar for room. */
@@ -80,9 +81,9 @@ export function LessonWorkspace({ lessonId }: { lessonId: string }) {
         {sidebarOpen ? (
           <aside className="hidden w-64 shrink-0 border-r border-line px-3 py-6 md:block">
             <p className="px-2 pb-2 text-xs font-medium uppercase tracking-wide text-subtle">
-              {ARRAYS_MODULE.title}
+              {mod.number} · {mod.title}
             </p>
-            <LessonSidebar currentId={lessonId} />
+            <LessonSidebar module={mod} currentId={lessonId} />
           </aside>
         ) : null}
 
@@ -100,8 +101,8 @@ export function LessonWorkspace({ lessonId }: { lessonId: string }) {
             <nav aria-label="Breadcrumb" className="min-w-0 flex-1 text-subtle">
               <ol className="flex flex-wrap items-center gap-1.5">
                 <li>
-                  <Link href="/learn/arrays" className="hover:text-fg">
-                    {ARRAYS_MODULE.title}
+                  <Link href={`/learn/${mod.slug}`} className="hover:text-fg">
+                    {mod.title}
                   </Link>
                 </li>
                 <li aria-hidden>›</li>
@@ -112,12 +113,12 @@ export function LessonWorkspace({ lessonId }: { lessonId: string }) {
             </nav>
             <div className="flex items-center gap-1">
               {previous ? (
-                <Link href={`/learn/arrays/lesson/${previous.id}`} className="btn-ghost" aria-label={`Previous lesson: ${previous.title}`}>
+                <Link href={`/learn/${mod.slug}/lesson/${previous.id}`} className="btn-ghost" aria-label={`Previous lesson: ${previous.title}`}>
                   <ChevronLeft className="size-4" aria-hidden /> Previous
                 </Link>
               ) : null}
               {next ? (
-                <Link href={`/learn/arrays/lesson/${next.id}`} className="btn-ghost" aria-label={`Next lesson: ${next.title}`}>
+                <Link href={`/learn/${mod.slug}/lesson/${next.id}`} className="btn-ghost" aria-label={`Next lesson: ${next.title}`}>
                   Next <ChevronRight className="size-4" aria-hidden />
                 </Link>
               ) : null}
@@ -127,7 +128,7 @@ export function LessonWorkspace({ lessonId }: { lessonId: string }) {
           <header className="mt-4 flex flex-wrap items-end justify-between gap-4">
             <div className="max-w-3xl">
               <p className="font-mono text-xs text-subtle">
-                Lesson {lesson.id} of {ARRAYS_MODULE.lessons.length} · about {content.estimatedMinutes} min
+                Module {mod.number} · Lesson {lesson.id} of {mod.lessons.length} · about {content.estimatedMinutes} min
               </p>
               <h1 className="mt-1 text-2xl font-semibold tracking-tight">{lesson.title}</h1>
               <p className="mt-1 text-muted">
@@ -183,15 +184,15 @@ export function LessonWorkspace({ lessonId }: { lessonId: string }) {
           </div>
 
           <div role="tabpanel" id="panel-theory" aria-labelledby="tab-theory" hidden={view !== "theory"} className="pt-6">
-            <TheoryView content={content} exerciseId={exercise?.id} onOpenPractice={() => open("practice")} />
+            <TheoryView content={content} lessonKey={key} exerciseId={exercise?.id} onOpenPractice={() => open("practice")} />
           </div>
           <div role="tabpanel" id="panel-practice" aria-labelledby="tab-practice" hidden={view !== "practice"} className="pt-6">
-            {practiceOpened ? <PracticeView lessonId={lessonId} content={content} exercise={exercise} /> : null}
+            {practiceOpened ? <PracticeView lessonKey={key} content={content} exercise={exercise} /> : null}
           </div>
 
           <nav aria-label="Lesson navigation" className="mt-12 flex justify-between gap-4 border-t border-line pt-6 text-sm">
             {previous ? (
-              <Link href={`/learn/arrays/lesson/${previous.id}`} className="group grid">
+              <Link href={`/learn/${mod.slug}/lesson/${previous.id}`} className="group grid">
                 <span className="text-subtle">Previous</span>
                 <span className="font-medium group-hover:underline">{previous.id}. {previous.title}</span>
               </Link>
@@ -199,7 +200,7 @@ export function LessonWorkspace({ lessonId }: { lessonId: string }) {
               <span />
             )}
             {next ? (
-              <Link href={`/learn/arrays/lesson/${next.id}`} className="group grid text-right">
+              <Link href={`/learn/${mod.slug}/lesson/${next.id}`} className="group grid text-right">
                 <span className="text-subtle">Next</span>
                 <span className="font-medium group-hover:underline">{next.id}. {next.title}</span>
               </Link>

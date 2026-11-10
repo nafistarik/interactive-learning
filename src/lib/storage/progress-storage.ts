@@ -1,11 +1,18 @@
 import { readStoredValue, writeStoredValue, type KeyValueStorage } from "./local-storage";
 import { emptyProgress, type ExerciseProgress, type ProgressState } from "@/features/progress/model";
 
-/** The one storage key of the progress, with its version in the name (brief Part 11). */
-export const PROGRESS_KEY = "vlp:progress:v1";
+/** The storage key of the progress, with its version in the name (brief Part 11, R2). */
+export const PROGRESS_KEY = "vlp:progress:v2";
+
+/** The MVP 1 key. Read once to migrate, never written; cleared by Reset. */
+export const LEGACY_PROGRESS_KEY = "vlp:progress:v1";
+
+/** Module that every MVP 1 lesson and exercise belonged to. */
+const V1_MODULE = "arrays";
 
 /**
- * Turns the stored text into a progress state. Anything that is not a valid version 1 state
+ * Turns the stored text into a progress state. A version 1 value (MVP 1) is migrated: its
+ * lesson ids become `arrays/<id>`. Anything else that is not a valid version 2 state
  * (missing, corrupt, or another version) becomes a fresh progress, so the page never crashes.
  *
  * @param raw - The stored text, or `null`.
@@ -21,14 +28,16 @@ export function parseProgress(raw: string | null): ProgressState {
   } catch {
     return emptyProgress();
   }
-  if (!isRecord(data) || data.version !== 1) {
+  if (!isRecord(data) || (data.version !== 1 && data.version !== 2)) {
     return emptyProgress();
   }
+  // Version 1 stored bare lesson ids of the only module; version 2 stores module/lesson keys.
+  const key = data.version === 1 ? (id: string) => `${V1_MODULE}/${id}` : (id: string) => id;
   const completedLessons = Array.isArray(data.completedLessons)
-    ? data.completedLessons.filter((id): id is string => typeof id === "string")
+    ? data.completedLessons.filter((id): id is string => typeof id === "string").map(key)
     : [];
   const passedChecks = Array.isArray(data.passedChecks)
-    ? data.passedChecks.filter((id): id is string => typeof id === "string")
+    ? data.passedChecks.filter((id): id is string => typeof id === "string").map(key)
     : [];
   const exercises: Record<string, ExerciseProgress> = {};
   if (isRecord(data.exercises)) {
@@ -39,8 +48,8 @@ export function parseProgress(raw: string | null): ProgressState {
     }
   }
   return {
-    version: 1,
-    currentLesson: typeof data.currentLesson === "string" ? data.currentLesson : null,
+    version: 2,
+    currentLesson: typeof data.currentLesson === "string" ? key(data.currentLesson) : null,
     completedLessons,
     passedChecks,
     exercises,
@@ -48,13 +57,15 @@ export function parseProgress(raw: string | null): ProgressState {
 }
 
 /**
- * Reads the saved progress from storage.
+ * Reads the saved progress from storage. With no version 2 value, the MVP 1 value is
+ * migrated; it stays in storage, so nothing is lost if the first save fails.
  *
  * @param storage - The storage to read, or `undefined` when there is none.
  * @returns The saved progress, or a fresh one.
  */
 export function loadProgress(storage: KeyValueStorage | undefined): ProgressState {
-  return parseProgress(readStoredValue(storage, PROGRESS_KEY));
+  const current = readStoredValue(storage, PROGRESS_KEY);
+  return parseProgress(current ?? readStoredValue(storage, LEGACY_PROGRESS_KEY));
 }
 
 /**

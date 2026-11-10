@@ -7,8 +7,7 @@ import { ThemeToggle } from "./ThemeToggle";
 
 /** Top-level navigation targets. */
 const NAV = [
-  { href: "/", label: "Dashboard", match: (path: string) => path === "/" },
-  { href: "/learn/arrays", label: "Module", match: (path: string) => path.startsWith("/learn") },
+  { href: "/", label: "Learn", match: (path: string) => path === "/" || path.startsWith("/learn") },
   { href: "/progress", label: "Progress", match: (path: string) => path === "/progress" },
 ];
 

@@ -3,9 +3,9 @@
 import { CheckCircle2, Circle, CircleDot } from "lucide-react";
 import Link from "next/link";
 
-import { ARRAYS_MODULE } from "@/data/arrays-module";
-import { findExerciseForLesson } from "@/data/exercises";
+import { findExercise, lessonKey } from "@/data/curriculum";
 import { LESSON_STATUS_TEXT } from "@/data/ui-text";
+import type { ModuleDef } from "@/features/content/types";
 import { lessonStatusOf, type LessonStatus } from "@/features/progress/model";
 import { useProgress } from "@/features/progress/progress-context";
 
@@ -19,23 +19,24 @@ const STATUS_ICON: Record<LessonStatus, typeof Circle> = {
 /**
  * The module's lessons with completion marks (brief Part 4.3, left column).
  *
+ * @param props.module - The module on screen.
  * @param props.currentId - The lesson on screen.
  */
-export function LessonSidebar({ currentId }: { currentId: string }) {
+export function LessonSidebar({ module, currentId }: { module: ModuleDef; currentId: string }) {
   const { state, loaded } = useProgress();
 
   return (
     <nav aria-label="Lessons" className="grid gap-0.5 text-sm">
-      {ARRAYS_MODULE.lessons.map((lesson) => {
+      {module.lessons.map((lesson) => {
         const status = loaded
-          ? lessonStatusOf(state, lesson.id, findExerciseForLesson(lesson.id)?.id)
+          ? lessonStatusOf(state, lessonKey(module.slug, lesson.id), findExercise(module, lesson.id)?.id)
           : "not-started";
         const Icon = STATUS_ICON[status];
         const current = lesson.id === currentId;
         return (
           <Link
             key={lesson.id}
-            href={`/learn/arrays/lesson/${lesson.id}`}
+            href={`/learn/${module.slug}/lesson/${lesson.id}`}
             aria-current={current ? "page" : undefined}
             className={`flex items-start gap-2 rounded-md px-2 py-2 ${
               current ? "bg-surface-2 font-medium text-fg" : "text-muted hover:bg-surface-2 hover:text-fg"

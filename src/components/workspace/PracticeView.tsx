@@ -12,16 +12,16 @@ import { useMediaQuery } from "@/features/ui/use-media-query";
  * sandbox for lessons without one. On a phone it shows the starter code read-only and says
  * coding works best on a larger screen.
  *
- * @param props.lessonId - The lesson's id, used to restart the arena when the lesson changes.
+ * @param props.lessonKey - The lesson's progress key; also restarts the arena on a new lesson.
  * @param props.content - The lesson content, for the sandbox starter code.
  * @param props.exercise - The lesson's exercise, if it has one.
  */
 export function PracticeView({
-  lessonId,
+  lessonKey,
   content,
   exercise,
 }: {
-  lessonId: string;
+  lessonKey: string;
   content: LessonContent;
   exercise: Exercise | undefined;
 }) {
@@ -54,5 +54,5 @@ export function PracticeView({
     );
   }
 
-  return <PythonArena key={lessonId} starterCode={starter} exercise={exercise} />;
+  return <PythonArena key={lessonKey} lessonKey={lessonKey} starterCode={starter} exercise={exercise} />;
 }

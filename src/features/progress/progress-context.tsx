@@ -13,7 +13,7 @@ import {
 } from "react";
 
 import { getBrowserStorage, removeStoredValue } from "@/lib/storage/local-storage";
-import { loadProgress, PROGRESS_KEY, saveProgress } from "@/lib/storage/progress-storage";
+import { LEGACY_PROGRESS_KEY, loadProgress, PROGRESS_KEY, saveProgress } from "@/lib/storage/progress-storage";
 
 import {
   emptyProgress,
@@ -124,6 +124,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   );
   const reset = useCallback(() => {
     removeStoredValue(getBrowserStorage(), PROGRESS_KEY);
+    removeStoredValue(getBrowserStorage(), LEGACY_PROGRESS_KEY);
     resettingRef.current = true;
     dispatch({ type: "reset" });
   }, []);

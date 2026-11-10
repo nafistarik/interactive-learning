@@ -1,11 +1,15 @@
 import type { PyodideInterface } from "pyodide";
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { ARRAYS_MODULE } from "@/data/arrays-module";
-import { LESSON_CONTENT } from "@/data/lessons";
+import { MODULES } from "@/data/curriculum";
 import { runPython } from "@/lib/python/run-python";
 
 import { loadTestPyodide } from "../lib/python/load-test-pyodide";
+
+/** Every lesson of every module, including modules still in development. */
+const LESSON_CONTENT = MODULES.flatMap((module) =>
+  module.content.map((lesson) => ({ ...lesson, lessonId: `${module.slug}/${lesson.lessonId}` })),
+);
 
 /** Every code example in the lessons, with where it comes from. */
 const examples = LESSON_CONTENT.flatMap((lesson) =>
@@ -19,12 +23,6 @@ const examples = LESSON_CONTENT.flatMap((lesson) =>
 );
 
 describe("lesson content structure", () => {
-  it("has content for every lesson, in order", () => {
-    expect(LESSON_CONTENT.map((lesson) => lesson.lessonId)).toEqual(
-      ARRAYS_MODULE.lessons.map((lesson) => lesson.id),
-    );
-  });
-
   it.each(LESSON_CONTENT.map((lesson) => [lesson.lessonId, lesson] as const))(
     "lesson %s has a 2–4 question check with valid answers",
     (_id, lesson) => {

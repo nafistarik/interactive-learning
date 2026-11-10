@@ -1,7 +1,10 @@
 import type { PyodideInterface } from "pyodide";
 import { beforeAll, describe, expect, it } from "vitest";
 
-import { EXERCISES, findExerciseForLesson } from "@/data/exercises";
+import { findExercise, MODULES } from "@/data/curriculum";
+
+const EXERCISES = MODULES.flatMap((module) => module.exercises);
+const findExerciseForLesson = (lessonId: string) => findExercise(MODULES[0], lessonId);
 import type { Exercise } from "@/features/validation/types";
 import { installRecorder } from "@/lib/python/record-frames";
 import { validateExercise } from "@/lib/python/validate-exercise";

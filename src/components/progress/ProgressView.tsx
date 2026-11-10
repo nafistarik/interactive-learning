@@ -3,15 +3,15 @@
 import Link from "next/link";
 import { useRef } from "react";
 
-import { ARRAYS_MODULE } from "@/data/arrays-module";
-import { EXERCISES } from "@/data/exercises";
-import { lessonStatusOf, totalsOf } from "@/features/progress/model";
+import { ProgressBar } from "@/components/ui/ProgressBar";
+import { AVAILABLE_EXERCISES, AVAILABLE_MODULES, findExercise, lessonKey, lessonKeysOf } from "@/data/curriculum";
+import { completionOf, lessonStatusOf, totalsOf } from "@/features/progress/model";
 import { useProgress } from "@/features/progress/progress-context";
 import { LESSON_STATUS_TEXT } from "@/data/ui-text";
 
 /**
- * The progress page (brief Part 4.4): totals, per-lesson status, exercise stars, and Reset
- * progress behind a confirmation dialog.
+ * The progress page (brief Part 4.4): totals, then per module its completion, each lesson's
+ * status and exercise stars; Reset progress behind a confirmation dialog.
  */
 export function ProgressView() {
   const { state, loaded, reset } = useProgress();
@@ -22,9 +22,11 @@ export function ProgressView() {
     return <p className="mt-6 text-subtle">Loading your progress…</p>;
   }
 
+  const lessonCount = AVAILABLE_MODULES.reduce((sum, module) => sum + module.lessons.length, 0);
+
   return (
     <div className="mt-6 grid gap-8">
-      <dl className="card grid grid-cols-2 gap-4 p-5 text-sm sm:grid-cols-5">
+      <dl className="card grid grid-cols-2 gap-4 p-5 text-sm sm:grid-cols-4">
         <div>
           <dt className="text-subtle">XP</dt>
           <dd className="text-lg font-medium">{totals.xp}</dd>
@@ -36,60 +38,56 @@ export function ProgressView() {
         <div>
           <dt className="text-subtle">Lessons completed</dt>
           <dd className="text-lg font-medium">
-            {totals.completedLessons} / {ARRAYS_MODULE.lessons.length}
+            {totals.completedLessons} / {lessonCount}
           </dd>
         </div>
         <div>
           <dt className="text-subtle">Exercises passed</dt>
           <dd className="text-lg font-medium">
-            {totals.passedExercises} / {EXERCISES.length}
+            {totals.passedExercises} / {AVAILABLE_EXERCISES.length}
           </dd>
-        </div>
-        <div>
-          <dt className="text-subtle">Module</dt>
-          <dd className="text-lg font-medium">{totals.modulePercent}%</dd>
         </div>
       </dl>
 
-      <section className="grid gap-2">
-        <h2 className="text-base font-medium">Lessons</h2>
-        <ul className="divide-y divide-line">
-          {ARRAYS_MODULE.lessons.map((lesson) => {
-            const exercise = EXERCISES.find((item) => item.lessonId === lesson.id);
-            return (
-              <li key={lesson.id} className="flex justify-between py-2 text-sm">
-                <Link href={`/learn/arrays/lesson/${lesson.id}`} className="hover:underline">
-                  {lesson.id}. {lesson.title}
-                </Link>
-                <span className="text-subtle">
-                  {LESSON_STATUS_TEXT[lessonStatusOf(state, lesson.id, exercise?.id)]}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-
-      <section className="grid gap-2">
-        <h2 className="text-base font-medium">Exercises</h2>
-        <ul className="divide-y divide-line">
-          {EXERCISES.map((exercise) => {
-            const progress = state.exercises[exercise.id];
-            return (
-              <li key={exercise.id} className="flex justify-between py-2 text-sm">
-                <span>{exercise.title}</span>
-                <span className="text-subtle">
-                  {progress?.passed
-                    ? `Passed · ${"★".repeat(progress.stars)}${"☆".repeat(3 - progress.stars)}`
-                    : progress
-                      ? `${progress.attempts} check${progress.attempts === 1 ? "" : "s"}`
-                      : "Not tried"}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
+      {AVAILABLE_MODULES.map((module) => {
+        const { percent } = completionOf(state, lessonKeysOf(module));
+        return (
+          <section key={module.slug} className="grid gap-3" aria-labelledby={`progress-${module.slug}`}>
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
+              <h2 id={`progress-${module.slug}`} className="text-base font-medium">
+                <span className="font-mono text-xs text-subtle">Module {module.number}</span> {module.title}
+              </h2>
+              <span className="text-sm font-medium tabular-nums">{percent}%</span>
+            </div>
+            <ProgressBar percent={percent} label={`Module ${module.number} completion`} />
+            <ul className="divide-y divide-line">
+              {module.lessons.map((lesson) => {
+                const exercise = findExercise(module, lesson.id);
+                const progress = exercise ? state.exercises[exercise.id] : undefined;
+                return (
+                  <li key={lesson.id} className="flex flex-wrap justify-between gap-x-4 py-2 text-sm">
+                    <Link href={`/learn/${module.slug}/lesson/${lesson.id}`} className="hover:underline">
+                      {lesson.id}. {lesson.title}
+                    </Link>
+                    <span className="flex gap-4 text-subtle">
+                      {exercise ? (
+                        <span>
+                          {progress?.passed
+                            ? `Exercise passed · ${"★".repeat(progress.stars)}${"☆".repeat(3 - progress.stars)}`
+                            : progress
+                              ? `Exercise: ${progress.attempts} check${progress.attempts === 1 ? "" : "s"}`
+                              : "Exercise not tried"}
+                        </span>
+                      ) : null}
+                      <span>{LESSON_STATUS_TEXT[lessonStatusOf(state, lessonKey(module.slug, lesson.id), exercise?.id)]}</span>
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        );
+      })}
 
       <div>
         <button

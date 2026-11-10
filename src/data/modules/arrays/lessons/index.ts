@@ -20,13 +20,3 @@ export const LESSON_CONTENT: readonly LessonContent[] = [
   LESSON_07,
   LESSON_08,
 ];
-
-/**
- * Finds the theory content of a lesson.
- *
- * @param lessonId - The lesson's two-digit id.
- * @returns The content, or `undefined`.
- */
-export function findLessonContent(lessonId: string): LessonContent | undefined {
-  return LESSON_CONTENT.find((lesson) => lesson.lessonId === lessonId);
-}

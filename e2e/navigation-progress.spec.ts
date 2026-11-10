@@ -25,7 +25,7 @@ test("an unknown lesson is a real 404", async ({ page }) => {
 test("dashboard and overview link to the module and lessons", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByText("Machine Learning")).toBeVisible();
-  await page.getByRole("link", { name: "Module overview" }).click();
+  await page.getByRole("link", { name: /Arrays, Vectorization & Broadcasting/ }).click();
   await expect(page).toHaveURL(/\/learn\/arrays$/);
   await page.getByRole("link", { name: /Array Indexing/ }).click();
   await expect(page).toHaveURL(/\/lesson\/04$/);
@@ -73,4 +73,32 @@ test("a corrupt saved progress starts fresh instead of crashing", async ({ page 
   await page.evaluate(() => localStorage.setItem("vlp:progress:v1", "{not json"));
   await page.reload();
   await expect(page.getByText("0 / 8")).toBeVisible();
+});
+
+test("MVP 1 progress is migrated to v2 and kept", async ({ page }) => {
+  await page.goto("/");
+  // Wait until the page has read (and saved) its progress, so it cannot overwrite the v1 value.
+  await expect(page.getByLabel("Your progress")).toContainText("0 / 8");
+  await page.evaluate(() => {
+    localStorage.clear();
+    localStorage.setItem(
+      "vlp:progress:v1",
+      JSON.stringify({
+        version: 1,
+        currentLesson: "06",
+        completedLessons: ["01"],
+        passedChecks: ["01"],
+        exercises: { ex02: { passed: true, attempts: 1, hintUsed: false, stars: 3 } },
+      }),
+    );
+  });
+  await page.reload();
+  const summary = page.getByLabel("Your progress");
+  await expect(summary).toContainText("150");
+  await expect(summary).toContainText("1 / 8");
+  await page.getByRole("link", { name: "Continue learning" }).click();
+  await expect(page).toHaveURL(/\/learn\/arrays\/lesson\/06$/);
+  await expect(page.getByLabel("Lesson progress")).toContainText("Passed ★★★");
+  const saved = await page.evaluate(() => localStorage.getItem("vlp:progress:v2"));
+  expect(saved).toContain("arrays/01");
 });
