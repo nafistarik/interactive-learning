@@ -3,6 +3,8 @@
 import { CheckCircle2, Circle, CircleDot, Dumbbell } from "lucide-react";
 import Link from "next/link";
 
+import { InlineText } from "@/components/theory/InlineText";
+
 import { findLesson } from "@/data/arrays-module";
 import { findExerciseForLesson } from "@/data/exercises";
 import { LESSON_STATUS_TEXT } from "@/data/ui-text";
@@ -40,7 +42,9 @@ export function LessonList({ lessons }: { lessons: LessonRow[] }) {
               <span className="font-mono text-sm text-subtle">{row.lessonId}</span>
               <span className="grid min-w-0 flex-1 gap-1">
                 <span className="font-medium">{lesson?.title}</span>
-                <span className="text-sm text-muted">{row.summary}</span>
+                <span className="text-sm text-muted">
+                  <InlineText text={row.summary} />
+                </span>
                 <span className="flex flex-wrap gap-3 text-xs text-subtle">
                   <span>{row.minutes} min</span>
                   {exercise ? (

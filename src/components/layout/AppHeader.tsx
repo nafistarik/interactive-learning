@@ -8,7 +8,7 @@ import { ThemeToggle } from "./ThemeToggle";
 /** Top-level navigation targets. */
 const NAV = [
   { href: "/", label: "Dashboard", match: (path: string) => path === "/" },
-  { href: "/learn/arrays", label: "Arrays module", match: (path: string) => path.startsWith("/learn") },
+  { href: "/learn/arrays", label: "Module", match: (path: string) => path.startsWith("/learn") },
   { href: "/progress", label: "Progress", match: (path: string) => path === "/progress" },
 ];
 
@@ -36,7 +36,7 @@ export function AppHeader() {
                 key={item.href}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={`rounded-md px-2.5 py-1.5 ${
+                className={`whitespace-nowrap rounded-md px-2.5 py-1.5 ${
                   active ? "bg-surface-2 font-medium text-fg" : "text-muted hover:text-fg"
                 }`}
               >

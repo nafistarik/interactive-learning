@@ -5,6 +5,8 @@ import { useState } from "react";
 
 import type { KnowledgeQuestion } from "@/features/content/types";
 
+import { InlineText } from "./InlineText";
+
 /**
  * Multiple-choice knowledge check (brief Part 5). Each answer shows right or wrong with a
  * one-line explanation; a wrong answer can be changed. When every question is answered
@@ -58,7 +60,7 @@ export function KnowledgeCheck({
         return (
           <fieldset key={question.id} className="grid gap-2">
             <legend className="mb-2 font-medium">
-              {number + 1}. {question.question}
+              {number + 1}. <InlineText text={question.question} />
             </legend>
             {question.options.map((option, index) => {
               const selected = chosen === index;
@@ -80,7 +82,9 @@ export function KnowledgeCheck({
                     onChange={() => choose(question, index)}
                     className="mt-0.5 accent-[var(--accent)]"
                   />
-                  <span>{option}</span>
+                  <span>
+                    <InlineText text={option} />
+                  </span>
                 </label>
               );
             })}
@@ -96,7 +100,7 @@ export function KnowledgeCheck({
                 )}
                 <span>
                   <span className="font-medium">{right ? "Right. " : "Not quite. "}</span>
-                  {question.explanation}
+                  <InlineText text={question.explanation} />
                   {right ? null : " Try another answer."}
                 </span>
               </p>

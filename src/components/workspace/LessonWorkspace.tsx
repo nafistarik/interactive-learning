@@ -12,6 +12,8 @@ import { PythonRuntimeProvider } from "@/features/execution/python-runtime-conte
 import { lessonStatusOf } from "@/features/progress/model";
 import { useProgress } from "@/features/progress/progress-context";
 
+import { InlineText } from "@/components/theory/InlineText";
+
 import { LessonSidebar } from "./LessonSidebar";
 import { PracticeView } from "./PracticeView";
 import { TheoryView } from "./TheoryView";
@@ -52,11 +54,12 @@ export function LessonWorkspace({ lessonId }: { lessonId: string }) {
   const checkPassed = state.passedChecks.includes(lessonId);
   const exerciseProgress = exercise ? state.exercises[exercise.id] : undefined;
 
-  /** Opens a view, mounting Practice the first time. */
+  /** Opens a view. Practice mounts the first time and hides the sidebar for room. */
   function open(target: View) {
     setView(target);
     if (target === "practice") {
       setPracticeOpened(true);
+      setSidebarOpen(false);
     }
   }
 
@@ -127,7 +130,9 @@ export function LessonWorkspace({ lessonId }: { lessonId: string }) {
                 Lesson {lesson.id} of {ARRAYS_MODULE.lessons.length} · about {content.estimatedMinutes} min
               </p>
               <h1 className="mt-1 text-2xl font-semibold tracking-tight">{lesson.title}</h1>
-              <p className="mt-1 text-muted">{content.summary}</p>
+              <p className="mt-1 text-muted">
+                <InlineText text={content.summary} />
+              </p>
             </div>
             <dl className="flex flex-wrap gap-x-5 gap-y-1 text-sm" aria-label="Lesson progress">
               <div className="flex gap-1.5">

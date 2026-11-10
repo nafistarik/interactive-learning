@@ -187,7 +187,17 @@ export default function PythonArena({
 
   return (
     <div className="grid gap-4">
-      <div className="flex flex-wrap items-center gap-2">
+      {exercise ? (
+        <ExercisePanel
+          exercise={exercise}
+          verdict={verdict}
+          attempts={attempts}
+          progress={progress.state.exercises[exercise.id]}
+          onHintOpened={() => progress.recordHint(exercise.id)}
+        />
+      ) : null}
+
+      <div className="sticky top-14 z-10 -mx-1 flex flex-wrap items-center gap-2 bg-canvas/95 px-1 py-2 backdrop-blur-sm">
         <button
           type="button"
           onClick={runAll}
@@ -259,9 +269,7 @@ export default function PythonArena({
             ))}
           </select>
         </label>
-      </div>
-
-      <p className="text-sm text-muted" role="status">
+      <p className="ml-auto text-sm text-muted" role="status">
         {describeStatus(runtime)}
         {failed ? (
           <button type="button" onClick={() => client?.warm()} className="ml-3 underline">
@@ -269,16 +277,9 @@ export default function PythonArena({
           </button>
         ) : null}
       </p>
+      </div>
 
-      {exercise ? (
-        <ExercisePanel
-          exercise={exercise}
-          verdict={verdict}
-          attempts={attempts}
-          progress={progress.state.exercises[exercise.id]}
-          onHintOpened={() => progress.recordHint(exercise.id)}
-        />
-      ) : null}
+
 
       <div className="grid gap-4 md:grid-cols-2">
         <CodeEditor

@@ -95,7 +95,7 @@ export default function CodeEditor({
 
   return (
     <Editor
-      height="320px"
+      height="440px"
       language="python"
       theme={theme === "dark" ? "vs-dark" : "light"}
       value={value}

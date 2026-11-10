@@ -20,12 +20,12 @@ export function VariableInspector({ variables }: { variables: VariableSnapshot[]
     <table className="w-full text-left text-sm">
       <thead className="text-subtle">
         <tr>
-          <th className="whitespace-nowrap py-1 font-medium">name</th>
-          <th className="whitespace-nowrap py-1 font-medium">type</th>
-          <th className="whitespace-nowrap py-1 font-medium">shape</th>
-          <th className="whitespace-nowrap py-1 font-medium">ndim</th>
-          <th className="whitespace-nowrap py-1 font-medium">dtype</th>
-          <th className="whitespace-nowrap py-1 font-medium">value</th>
+          <th className="whitespace-nowrap py-1 pr-4 font-medium">name</th>
+          <th className="whitespace-nowrap py-1 pr-4 font-medium">type</th>
+          <th className="whitespace-nowrap py-1 pr-4 font-medium">shape</th>
+          <th className="whitespace-nowrap py-1 pr-4 font-medium">ndim</th>
+          <th className="whitespace-nowrap py-1 pr-4 font-medium">dtype</th>
+          <th className="whitespace-nowrap py-1 pr-4 font-medium">value</th>
         </tr>
       </thead>
       <tbody>
@@ -36,12 +36,12 @@ export function VariableInspector({ variables }: { variables: VariableSnapshot[]
           const cut = array ? array.truncated || values.length > INSPECTOR_VALUES : false;
           return (
             <tr key={variable.name} className="border-t border-line">
-              <td className="whitespace-nowrap py-1 font-mono">{variable.name}</td>
-              <td className="whitespace-nowrap py-1 font-mono">{variable.type}</td>
-              <td className="whitespace-nowrap py-1 font-mono">{array ? formatShape(array.shape) : "-"}</td>
-              <td className="whitespace-nowrap py-1 font-mono">{array ? array.shape.length : "-"}</td>
-              <td className="whitespace-nowrap py-1 font-mono">{array ? array.dtype : "-"}</td>
-              <td className="whitespace-nowrap py-1 font-mono">
+              <td className="whitespace-nowrap py-1 pr-4 font-mono">{variable.name}</td>
+              <td className="whitespace-nowrap py-1 pr-4 font-mono">{variable.type}</td>
+              <td className="whitespace-nowrap py-1 pr-4 font-mono">{array ? formatShape(array.shape) : "-"}</td>
+              <td className="whitespace-nowrap py-1 pr-4 font-mono">{array ? array.shape.length : "-"}</td>
+              <td className="whitespace-nowrap py-1 pr-4 font-mono">{array ? array.dtype : "-"}</td>
+              <td className="whitespace-nowrap py-1 pr-4 font-mono">
                 {array ? `[${shownValues.map(String).join(", ")}${cut ? ", …" : ""}]` : variable.repr}
               </td>
             </tr>
