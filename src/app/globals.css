@@ -29,6 +29,9 @@
   --tone-weight-soft: #fef3c7;
   --tone-result: #059669;
   --tone-result-soft: #d1fae5;
+  /* Chart series, validated for CVD/lightness/contrast in both themes (dataviz validator). */
+  --chart-1: #0284c7;
+  --chart-2: #059669;
   --radius: 8px;
   --shadow: 0 1px 2px rgb(0 0 0 / 0.05), 0 1px 3px rgb(0 0 0 / 0.04);
   --frame-highlight: rgb(37 99 235 / 0.16);
@@ -88,6 +91,8 @@
   --color-tone-weight-soft: var(--tone-weight-soft);
   --color-tone-result: var(--tone-result);
   --color-tone-result-soft: var(--tone-result-soft);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
   --radius-card: var(--radius);
   --shadow-card: var(--shadow);
   --font-sans: var(--font-geist-sans);

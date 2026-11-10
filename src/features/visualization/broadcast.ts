@@ -146,7 +146,7 @@ export function buildStages(operations: OperationStep[]): AnimationStage[] {
     return [{ operation: -1, phase: "show" }];
   }
   return operations.flatMap((step, operation) =>
-    (step.kind === "reshape" ? (["operands", "result"] as const) : (["operands", "align", "result"] as const)).map(
+    (step.kind === "reshape" || step.kind === "ufunc" ? (["operands", "result"] as const) : (["operands", "align", "result"] as const)).map(
       (phase) => ({ operation, phase }),
     ),
   );

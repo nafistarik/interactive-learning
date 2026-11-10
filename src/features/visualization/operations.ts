@@ -120,7 +120,9 @@ export function explainReshape(inputShape: number[], requested: number[] | null)
 }
 
 /**
- * Formats a recorded value the way Python prints it: booleans as `True`/`False`.
+ * Formats a recorded value for a cell: booleans as Python prints them (`True`/`False`),
+ * whole numbers as they are, other numbers to 4 significant digits so cells stay readable
+ * (the variable inspector keeps the full value).
  *
  * @param value - One element of a snapshot.
  * @returns Its text.
@@ -128,6 +130,9 @@ export function explainReshape(inputShape: number[], requested: number[] | null)
 export function formatValue(value: Values): string {
   if (typeof value === "boolean") {
     return value ? "True" : "False";
+  }
+  if (typeof value === "number" && !Number.isInteger(value)) {
+    return String(Number(value.toPrecision(4)));
   }
   return String(value);
 }

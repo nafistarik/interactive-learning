@@ -7,6 +7,9 @@ import { buildStages } from "@/features/visualization/broadcast";
 import { usePrefersReducedMotion } from "@/features/visualization/use-reduced-motion";
 
 import { ArrayGrid } from "./ArrayGrid";
+import type { FitChartSpec } from "@/features/visualization/charts";
+
+import { LoopView } from "./LoopView";
 import { OperationView } from "./OperationView";
 
 /** Time one stage stays on screen at speed 1×, in milliseconds. */
@@ -21,15 +24,18 @@ const STAGE_MS = 1200;
  * @param props.frame - The frame to show.
  * @param props.paused - Whether the animation is paused.
  * @param props.speed - Playback speed multiplier.
+ * @param props.chart - A fit chart for loop frames, from the exercise or demo.
  */
 export function FrameVisualizer({
   frame,
   paused,
   speed,
+  chart,
 }: {
   frame: ExecutionFrame;
   paused: boolean;
   speed: number;
+  chart?: FitChartSpec;
 }) {
   const stages = useMemo(() => buildStages(frame.operations), [frame.operations]);
   const reducedMotion = usePrefersReducedMotion();
@@ -58,6 +64,17 @@ export function FrameVisualizer({
 
   return (
     <div className="grid gap-3">
+      {frame.loop ? (
+        <LoopView
+          frame={frame}
+          loop={frame.loop}
+          playing={!paused && !reducedMotion}
+          reducedMotion={reducedMotion}
+          speed={speed}
+          chart={chart}
+        />
+      ) : null}
+
       {frame.operationType === "not-visualised" ? (
         <p className="text-sm text-muted">{frame.note}</p>
       ) : null}

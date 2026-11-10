@@ -23,7 +23,7 @@ export function PlaygroundDemoView({ demo }: { demo: PlaygroundDemo }) {
   const code = fillTemplate(demo, values);
   const recording = useDemoRecording(code);
   const frames = recording.state === "ready" ? recording.frames : [];
-  const operationFrame = [...frames].reverse().find((frame) => frame.operations.length > 0);
+  const operationFrame = [...frames].reverse().find((frame) => frame.operations.length > 0 || frame.loop);
   const failed = frames.at(-1)?.status === "error" ? frames.at(-1) : undefined;
 
   return (
@@ -64,7 +64,7 @@ export function PlaygroundDemoView({ demo }: { demo: PlaygroundDemo }) {
     >
       <div className="grid gap-3">
         {operationFrame ? (
-          <FrameVisualizer key={code} frame={operationFrame} paused={false} speed={1.5} />
+          <FrameVisualizer key={code} frame={operationFrame} paused={false} speed={1.5} chart={demo.chart} />
         ) : (
           (demo.show ?? []).map((name) => {
             const array = finalArray(frames, name);

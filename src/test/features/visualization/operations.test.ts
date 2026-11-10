@@ -81,4 +81,10 @@ describe("formatValue", () => {
     expect(formatValue(false)).toBe("False");
     expect(formatValue(2.5)).toBe("2.5");
   });
+
+  it("keeps whole numbers and shortens long floats to 4 significant digits", () => {
+    expect(formatValue(12)).toBe("12");
+    expect(formatValue(2.91873128773767)).toBe("2.919");
+    expect(formatValue(0.00253301)).toBe("0.002533");
+  });
 });

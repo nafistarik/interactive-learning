@@ -72,8 +72,34 @@ export interface ReshapeStep extends OneOperand {
   requested: number[] | null;
 }
 
+/** An element-wise NumPy function of one array, e.g. `np.exp(z)`. */
+export interface UfuncStep extends OneOperand {
+  kind: "ufunc";
+  fn: "exp" | "log" | "sqrt" | "abs" | "square" | "tanh" | "sign";
+}
+
 /** One recorded sub-step of a statement, in evaluation order. */
-export type OperationStep = BinaryStep | MatmulStep | ReduceStep | ReshapeStep;
+export type OperationStep = BinaryStep | MatmulStep | ReduceStep | ReshapeStep | UfuncStep;
+
+/** A watched value after one loop iteration: a number (NaN/infinity as strings) or an array. */
+export type WatchedValue = { number: number | string } | { array: ArraySnapshot };
+
+/** The watched values after one iteration. */
+export interface IterationSnapshot {
+  iteration: number;
+  values: Record<string, WatchedValue>;
+}
+
+/**
+ * A top-level loop's iterations (R3). At most 300 are kept; a longer loop keeps an even
+ * sample (`sampled`) and always its last iteration. `total` is how many ran.
+ */
+export interface LoopRecord {
+  watched: string[];
+  iterations: IterationSnapshot[];
+  total: number;
+  sampled: boolean;
+}
 
 /**
  * The operand variable names of a step, for pointing at the line to fix when it fails.
@@ -87,7 +113,7 @@ export function operandNames(step: OperationStep): (string | null)[] {
 
 /** Kind of statement a frame records. */
 /** `binary-op`: only element-wise steps; `operation`: at least one other recorded step. */
-export type OperationType = "import" | "assign" | "expression" | "binary-op" | "operation" | "not-visualised";
+export type OperationType = "import" | "assign" | "expression" | "binary-op" | "operation" | "loop" | "not-visualised";
 
 /** One top-level statement of the editor code, after it ran. */
 export interface ExecutionFrame {
@@ -108,6 +134,8 @@ export interface ExecutionFrame {
   };
   /** Value of a bare expression, shown like a REPL result. */
   result?: VariableSnapshot;
+  /** The loop's iterations, for `operationType: "loop"`. */
+  loop?: LoopRecord;
   /** Why a statement is not visualised step by step. */
   note?: string;
 }

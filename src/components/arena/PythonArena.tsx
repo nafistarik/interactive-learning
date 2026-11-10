@@ -103,7 +103,7 @@ export default function PythonArena({
   const lines: LineRange | null = frame ? { startLine: frame.startLine, endLine: frame.endLine } : null;
   const errorLine = frame?.status === "error" ? frame.startLine : null;
   const atLast = frames.length === 0 || index >= frames.length - 1;
-  const animated = frame !== null && frame.operations.length > 0;
+  const animated = frame !== null && (frame.operations.length > 0 || frame.loop !== undefined);
   const lastStep = frame?.operations[frame.operations.length - 1];
   // Point at operand definitions only when an operand's shape is the bug (element-wise or @);
   // a failed reduce or reshape is fixed in its own arguments, on the failing line.
@@ -304,7 +304,7 @@ export default function PythonArena({
             </p>
           ) : null}
           {frame ? (
-            <FrameVisualizer key={`${runId}-${frame.index}`} frame={frame} paused={paused} speed={speed} />
+            <FrameVisualizer key={`${runId}-${frame.index}`} frame={frame} paused={paused} speed={speed} chart={exercise?.chart} />
           ) : (
             <p className="text-sm text-subtle">Run the code to see the arrays and the broadcasting here.</p>
           )}

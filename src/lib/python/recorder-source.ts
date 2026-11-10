@@ -6,6 +6,7 @@
  */
 export const RECORDER_SOURCE = String.raw`
 import ast
+import copy
 import io
 import json
 import math
@@ -39,7 +40,12 @@ COMPARATORS = {
 REDUCERS = ("sum", "mean", "max", "min", "std")
 MATMULS = ("dot", "matmul")
 RESHAPERS = ("reshape", "transpose")
-RECORDED_CALLS = REDUCERS + MATMULS + RESHAPERS
+UFUNCS = ("exp", "log", "sqrt", "abs", "square", "tanh", "sign")
+RECORDED_CALLS = REDUCERS + MATMULS + RESHAPERS + UFUNCS
+
+# Loops (R3): at most this many iterations are kept; longer loops are sampled evenly.
+MAX_ITERATIONS = 300
+ITERATION_HOOK = "__record_iteration__"
 
 
 class OperationFailed(Exception):
@@ -185,6 +191,12 @@ def recorded_call(node, namespace, steps):
     else:
         return getattr(owner, name)(*args, **kwargs)
 
+    if name in UFUNCS:
+        if not is_numpy(owner) or rest or kwargs:
+            return call()
+        step = {"kind": "ufunc", "fn": name, "input": snapshot(subject), "inputName": name_of(subject_node)}
+        return attempt(step, call, [np.shape(subject)], steps)
+
     if name in MATMULS and len(rest) == 1 and not kwargs:
         return binary("matmul", "@", lambda left, right: call(), subject, rest[0], subject_node, rest_nodes[0], steps)
 
@@ -275,6 +287,106 @@ def run_statement(statement, namespace, steps):
     return None, None
 
 
+def watched_names(loop):
+    """Names a loop assigns (its target and the body's assignments), in first-seen order."""
+    names = []
+
+    def add(target):
+        if isinstance(target, ast.Name) and target.id not in names and not target.id.startswith("_"):
+            names.append(target.id)
+        elif isinstance(target, (ast.Tuple, ast.List)):
+            for element in target.elts:
+                add(element)
+
+    if isinstance(loop, ast.For):
+        add(loop.target)
+    for statement in loop.body:
+        for node in ast.walk(statement):
+            if isinstance(node, ast.Assign):
+                for target in node.targets:
+                    add(target)
+            elif isinstance(node, (ast.AugAssign, ast.AnnAssign)):
+                add(node.target)
+            elif isinstance(node, ast.Expr) and isinstance(node.value, ast.Call):
+                # losses.append(loss): the list changes in place.
+                func = node.value.func
+                if isinstance(func, ast.Attribute) and func.attr in ("append", "extend") and isinstance(func.value, ast.Name):
+                    add(func.value)
+    return names
+
+
+def watch_value(value):
+    """A watched value for one iteration: a number, an array snapshot, or None (not drawable)."""
+    if isinstance(value, (bool, np.bool_)):
+        return None
+    if isinstance(value, (int, float, np.integer, np.floating)):
+        return {"number": json_value(float(value))}
+    if isinstance(value, np.ndarray):
+        return {"array": snapshot(value)}
+    if isinstance(value, list) and len(value) <= 10000:
+        try:
+            return {"array": snapshot(np.asarray(value, dtype=float))}
+        except (TypeError, ValueError):
+            return None
+    return None
+
+
+class LoopRecorder:
+    """Called after every iteration; keeps at most MAX_ITERATIONS snapshots, evenly spaced."""
+
+    def __init__(self, names, namespace):
+        self.names = names
+        self.namespace = namespace
+        self.count = 0
+        self.stride = 1
+        self.kept = []
+        self.last = None
+
+    def __call__(self):
+        iteration = self.count
+        self.count += 1
+        values = {}
+        for name in self.names:
+            if name in self.namespace:
+                value = watch_value(self.namespace[name])
+                if value is not None:
+                    values[name] = value
+        snap = {"iteration": iteration, "values": values}
+        self.last = snap
+        if iteration % self.stride == 0:
+            self.kept.append(snap)
+            if len(self.kept) > MAX_ITERATIONS:
+                self.kept = self.kept[::2]
+                self.stride *= 2
+
+    def record(self):
+        kept = list(self.kept)
+        if self.last is not None and (not kept or kept[-1]["iteration"] != self.last["iteration"]):
+            kept.append(self.last)
+        return {"watched": self.names, "iterations": kept, "total": self.count, "sampled": self.stride > 1}
+
+
+def run_loop(loop, namespace, holder):
+    """Runs a top-level loop once, snapshotting its watched names after every iteration.
+
+    The body is wrapped in try/finally calling the recorder, so break and continue keep
+    working; the record is stored in holder["record"] even when the loop raises.
+    """
+    recorder = LoopRecorder(watched_names(loop), namespace)
+    hook = ast.Expr(value=ast.Call(func=ast.Name(id=ITERATION_HOOK, ctx=ast.Load()), args=[], keywords=[]))
+    wrapped = ast.Try(body=loop.body, handlers=[], orelse=[], finalbody=[hook])
+    ast.copy_location(wrapped, loop.body[0])
+    instrumented = copy.copy(loop)
+    instrumented.body = [wrapped]
+    ast.fix_missing_locations(instrumented)
+    namespace[ITERATION_HOOK] = recorder
+    try:
+        exec(compile_statement(instrumented), namespace)
+    finally:
+        namespace.pop(ITERATION_HOOK, None)
+        holder["record"] = recorder.record()
+
+
 def static_kind(statement):
     """Operation type of a statement before it runs; arithmetic can change it afterwards."""
     if isinstance(statement, (ast.Import, ast.ImportFrom)):
@@ -283,6 +395,8 @@ def static_kind(statement):
         return "assign"
     if isinstance(statement, ast.Expr):
         return "expression"
+    if isinstance(statement, (ast.For, ast.While)):
+        return "loop"
     return "not-visualised"
 
 
@@ -298,8 +412,12 @@ def record_editor(tree, code, namespace):
         error = None
         target = None
         result = None
+        loop_holder = {}
         try:
-            target, result = run_statement(statement, namespace, steps)
+            if isinstance(statement, (ast.For, ast.While)):
+                run_loop(statement, namespace, loop_holder)
+            else:
+                target, result = run_statement(statement, namespace, steps)
         except OperationFailed as failure:
             error = {
                 "type": type(failure.cause).__name__,
@@ -332,6 +450,8 @@ def record_editor(tree, code, namespace):
             frame["result"] = result
         if kind == "not-visualised":
             frame["note"] = NOT_VISUALISED_NOTE
+        if "record" in loop_holder:
+            frame["loop"] = loop_holder["record"]
         if error is not None:
             frame["error"] = error
         frames.append(frame)

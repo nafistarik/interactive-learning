@@ -117,12 +117,20 @@ describe("recordFrames with Pyodide and NumPy", () => {
     expect(steps[1].result?.values).toEqual([11, 201, 31, 401]);
   });
 
-  it("marks a loop as not visualised and keeps its printed output", () => {
+  it("records a loop as one frame with its iterations, and keeps its printed output (R3)", () => {
     const frames = framesOf(recordFrames(pyodide, "for i in range(3):\n    print(i)"));
 
     expect(frames).toHaveLength(1);
-    expect(frames[0].operationType).toBe("not-visualised");
+    expect(frames[0].operationType).toBe("loop");
     expect(frames[0].stdout).toBe("0\n1\n2\n");
+    expect(frames[0].loop?.total).toBe(3);
+    expect(frames[0].loop?.iterations.map((item) => item.values.i)).toEqual([{ number: 0 }, { number: 1 }, { number: 2 }]);
+  });
+
+  it("still marks a def as not visualised", () => {
+    const frames = framesOf(recordFrames(pyodide, "def f(x):\n    return x"));
+
+    expect(frames[0].operationType).toBe("not-visualised");
     expect(frames[0].note).toBeDefined();
   });
 

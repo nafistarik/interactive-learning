@@ -7,6 +7,7 @@ import { BroadcastView } from "./BroadcastView";
 import { MatmulView } from "./MatmulView";
 import { ReduceView } from "./ReduceView";
 import { ReshapeView } from "./ReshapeView";
+import { UfuncView } from "./UfuncView";
 
 /**
  * Picks the view for a recorded step by its kind (R2 brief: visualization registry).
@@ -40,5 +41,7 @@ export function OperationView({
       return <ReduceView step={step} phase={phase} {...common} />;
     case "reshape":
       return <ReshapeView step={step} phase={phase === "align" ? "result" : phase} {...common} />;
+    case "ufunc":
+      return <UfuncView step={step} phase={phase === "align" ? "result" : phase} {...common} />;
   }
 }

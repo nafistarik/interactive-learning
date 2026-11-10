@@ -23,13 +23,18 @@ def has_loop(code):
     return any(isinstance(node, LOOP_NODES) for node in ast.walk(tree))
 
 
-def same_value(actual, expected):
-    """True when two values have the same shape and numerically equal elements."""
+def same_value(actual, expected, tolerance=None):
+    """True when two values have the same shape and numerically equal elements.
+
+    tolerance is an absolute tolerance for trained values; without it, np.allclose defaults.
+    """
     actual_array = np.asarray(actual)
     expected_array = np.asarray(expected)
     if actual_array.shape != expected_array.shape:
         return False
     try:
+        if tolerance is not None:
+            return bool(np.allclose(actual_array, expected_array, rtol=0, atol=tolerance))
         return bool(np.allclose(actual_array, expected_array))
     except TypeError:
         return bool(np.array_equal(actual_array, expected_array))
@@ -37,6 +42,12 @@ def same_value(actual, expected):
 
 def compare(check, namespace, expected):
     """One problem message for a failed check, or None when the check passes."""
+    if check["kind"] == "assert":
+        try:
+            holds = bool(eval(check["expression"], namespace))
+        except Exception as failure:
+            return check["message"] + " (" + type(failure).__name__ + ": " + str(failure) + ")"
+        return None if holds else check["message"]
     name = check["name"]
     if name not in namespace:
         return name + " is missing. Create a variable named " + name + "."
@@ -49,7 +60,7 @@ def compare(check, namespace, expected):
     expected_shape = np.asarray(expected).shape
     if actual_shape != expected_shape:
         return name + " has shape " + str(actual_shape) + ", expected " + str(expected_shape) + "."
-    if not same_value(actual, expected):
+    if not same_value(actual, expected, check.get("tolerance")):
         return name + " has the wrong values."
     return None
 
@@ -66,7 +77,7 @@ def validate_exercise(code, runs_json, checks_json):
     for run in runs:
         reference = {"__name__": "__main__"}
         exec(compile(run["reference"], "<reference>", "exec"), reference)
-        expected = [eval(check["expression"], reference) for check in checks]
+        expected = [None if check["kind"] == "assert" else eval(check["expression"], reference) for check in checks]
 
         namespace = {"__name__": "__main__"}
         try:
