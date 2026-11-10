@@ -1,11 +1,12 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 
 import type { ExecutionFrame, RecordingOutcome } from "@/features/execution/frames";
 import type { Exercise, ValidationOutcome } from "@/features/validation/types";
-import { PythonClient, type RuntimeStatus } from "@/features/execution/python-client";
+import type { RuntimeStatus } from "@/features/execution/python-client";
+import { usePythonRuntime } from "@/features/execution/python-runtime-context";
 import { useProgress } from "@/features/progress/progress-context";
 
 import { ExecutionTimeline } from "@/components/visualization/ExecutionTimeline";
@@ -24,18 +25,6 @@ const CodeEditor = dynamic(() => import("./CodeEditor"), {
   ssr: false,
   loading: () => <p className="p-4 text-sm text-subtle">Loading editor…</p>,
 });
-
-/**
- * Creates the Python worker. The bundler turns the URL into a separate file, so the worker
- * code never runs on the page's main thread.
- *
- * @returns A new worker running `python.worker.ts`.
- */
-function createPythonWorker(): Worker {
-  return new Worker(new URL("../../workers/python.worker.ts", import.meta.url), {
-    type: "module",
-  });
-}
 
 /**
  * Describes the runtime state in one line for the user.
@@ -94,7 +83,6 @@ export default function PythonArena({
   exercise?: Exercise;
 }) {
   const [code, setCode] = useState(starterCode);
-  const [runtime, setRuntime] = useState<RuntimeStatus>({ state: "idle" });
   const [recording, setRecording] = useState<RecordingOutcome | null>(null);
   const [index, setIndex] = useState(0);
   const [running, setRunning] = useState(false);
@@ -105,17 +93,7 @@ export default function PythonArena({
   const [checking, setChecking] = useState(false);
   const progress = useProgress();
   const [speed, setSpeed] = useState<(typeof SPEEDS)[number]>(1);
-  const clientRef = useRef<PythonClient | null>(null);
-
-  useEffect(() => {
-    const client = new PythonClient(createPythonWorker, setRuntime);
-    clientRef.current = client;
-    client.warm();
-    return () => {
-      client.dispose();
-      clientRef.current = null;
-    };
-  }, []);
+  const { client, runtime } = usePythonRuntime();
 
   const frames = useMemo(() => (recording?.ok ? recording.frames : []), [recording]);
   const frame = frames[index] ?? null;
@@ -145,7 +123,6 @@ export default function PythonArena({
 
   /** Records the current code and returns the recording, storing it on the page. */
   async function record(): Promise<RecordingOutcome | null> {
-    const client = clientRef.current;
     if (!client) {
       return null;
     }
@@ -182,7 +159,6 @@ export default function PythonArena({
 
   /** Checks the current code against the exercise and shows the verdict. */
   async function checkSolution() {
-    const client = clientRef.current;
     if (!client || !exercise) {
       return;
     }
@@ -215,7 +191,7 @@ export default function PythonArena({
         <button
           type="button"
           onClick={runAll}
-          disabled={running || failed}
+          disabled={running || failed || !client}
           className="btn-primary"
         >
           Run all
@@ -288,7 +264,7 @@ export default function PythonArena({
       <p className="text-sm text-muted" role="status">
         {describeStatus(runtime)}
         {failed ? (
-          <button type="button" onClick={() => clientRef.current?.warm()} className="ml-3 underline">
+          <button type="button" onClick={() => client?.warm()} className="ml-3 underline">
             Retry
           </button>
         ) : null}
@@ -304,7 +280,7 @@ export default function PythonArena({
         />
       ) : null}
 
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         <CodeEditor
           value={code}
           onChange={changeCode}
@@ -356,7 +332,7 @@ export default function PythonArena({
         </div>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         <section aria-label="Execution timeline" className="grid content-start gap-2">
           <h3 className="text-sm font-medium">Timeline</h3>
           <ExecutionTimeline
