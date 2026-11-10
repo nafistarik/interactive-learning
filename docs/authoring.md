@@ -79,6 +79,12 @@ backticks for inline code; no emoji, no hype, no invented numbers.
   `keepdims`, `reshape`, `.T`/`np.transpose`. Otherwise list variables in `show`.
 - An option may fail on purpose (to show an explanation), but only inside a recorded
   operation. The playground test runs every option.
+- **Loops** (R3): a top-level `for`/`while` records, per iteration, the names its body assigns
+  (and lists it `.append`s to). Numbers become line charts, arrays are shown at the selected
+  iteration. Add `chart: { kind: "fit", x: "x", y: "y", prediction: "pred" }` to the demo
+  (or exercise) and assign `pred` in the loop to plot the fit moving. Use `*` or
+  `np.square` instead of `**` where you want the step animated.
+- Importing `sklearn`, `scipy` or `pandas` loads them on first use (a few seconds).
 
 ## 3. An exercise
 
@@ -98,7 +104,10 @@ backticks for inline code; no emoji, no hype, no invented numbers.
     { kind: "result", name: "out", expression: "X @ W" },     // evaluated on the reference
     { kind: "unchanged", name: "X", expression: "X" },        // learner must not change it
     { kind: "no-loop" },                                      // only when vectorizing is the point
+    { kind: "result", name: "w", expression: "w", tolerance: 0.001 },  // trained values
+    { kind: "assert", expression: "losses[-1] < losses[0]", message: "The loss should go down." },
   ],
+  chart: { kind: "fit", x: "x", y: "y", prediction: "pred" },  // optional, for training loops
   solution,                // used by tests only, never shown
 }
 ```

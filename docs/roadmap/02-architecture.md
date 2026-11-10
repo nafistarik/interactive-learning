@@ -12,7 +12,7 @@ Next.js (App Router, static pages)
 └── PythonRuntimeProvider          one worker per lesson page
         │  postMessage
         ▼
-Web Worker: Pyodide 0.29.4 + NumPy (pinned, CDN)
+Web Worker: Pyodide 0.29.4 + NumPy (pinned, CDN); scikit-learn/scipy/pandas loaded on import
 ├── recorder  (ast)   code → one frame per top-level statement
 └── validator         runs the learner's code with the visible and hidden inputs
 
@@ -63,8 +63,8 @@ Today `OperationStep.operator` is `"+" | "-" | "*" | "/"`. Each release adds ope
 | `reduce` (`sum`, `mean`, `max`, `min`, `std`, with `axis`, `keepdims`) | R2 ✓ | input, axis, result | collapse along an axis |
 | `reshape` / `transpose` (`.T`) | R2 ✓ | input, requested shape, result | element traced from input to result |
 | comparisons (`>`, `==`, …) as `binary` | R2 ✓ | as binary, boolean result | element-wise view |
-| `call` (ufuncs: `np.exp`, `np.maximum`, …) | R3 | inputs, result | per-element function |
-| `loop` | R3 | per-iteration snapshots of watched variables, capped | iteration scrubber, live charts |
+| `ufunc` (`np.exp`, `log`, `sqrt`, `abs`, `square`, `tanh`, `sign`) | R3 ✓ | input, result | per-element function |
+| loop frames (`for`/`while`) | R3 ✓ | per-iteration snapshots of the names the body assigns, ≤ 300 kept, evenly sampled | iteration scrubber, line charts, fit chart |
 
 A visualization registry maps kind → component; an unknown kind falls back to the
 before/after array view.

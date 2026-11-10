@@ -9,7 +9,7 @@ the full curriculum is written down (see [open decisions](04-open-decisions.md))
 | R1.0 | MVP 1: Module 0.1 Arrays, Vectorization & Broadcasting | Statement recorder, frames, broadcasting view | Done 2026-11-11 |
 | R1.1 | Launch MVP 1 and learn from it | e2e tests, learner sessions | Engineering done 2026-11-11; learner sessions open |
 | R2 | Phase 0 complete: NumPy for ML | New operation kinds (`@`, reductions, reshape, calls), multi-module content | Done 2026-11-11 ([brief](../r2/README.md)) |
-| R3 | Phase 1: ML foundations in NumPy | Loop-aware recording, charts from real data | |
+| R3 | Phase 1: ML foundations in NumPy | Loop-aware recording, charts from real data | Done 2026-11-11 ([brief](../r3/README.md)) |
 | R4 | Accounts and sync (only if learners return) | Thin backend, progress merge | |
 | R5 | Phase 2: Deep learning foundations | NumPy autograd in the browser; PyTorch decision | |
 | Later | Transformers, RL, Agentic AI, AI hints, desktop | | |
@@ -84,6 +84,12 @@ Done when: all of Phase 0 is live, every new operation is visualized from frames
 v1 learner's progress survives the upgrade.
 
 ## R3 — Phase 1: ML foundations in NumPy
+
+**Done 2026-11-11.** Modules 1.1 Linear Regression & Loss, 1.2 Gradient Descent, 1.3
+Logistic Regression and 1.4 Evaluating Models are open (4 lessons, 3 exercises each).
+Loops record their iterations (≤ 300, sampled evenly), training shows loss curves and a fit
+chart from recorded predictions, `np.exp` & co. are recorded, the validator has tolerances and
+assertions, and scikit-learn loads on import. Next decision (below): the PyTorch route.
 
 Goal: the learner builds and trains small models from scratch and *watches training*.
 
