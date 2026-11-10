@@ -82,7 +82,7 @@ Frames gain a `contractVersion` field in R2 so a cached old worker never feeds n
 
 | Need | Smallest answer | When |
 |---|---|---|
-| Hosting | Static hosting (Vercel, Cloudflare Pages, Netlify) | R1.1 |
+| Hosting | Vercel, deploying every push to `main` (static pages, no server code) | R1.1 ✓ |
 | Accounts, cross-device progress, streak | Managed auth + Postgres (e.g. Supabase) behind a thin API | R4, only if learners come back |
 | AI hints | A small proxy for the model API (keys never in the browser) | after R4 |
 | PyTorch execution | Isolated sandbox (container/microVM per run, CPU/memory/time limits, no network) | R5 decision, maybe never |
@@ -92,5 +92,5 @@ FastAPI is the right tool only for the last row. Do not build it for the others.
 ## Desktop (Tauri) — later
 
 Possible because the app stays static-exportable. Needs: self-hosted Pyodide files,
-`output: "export"`, and no route handlers. A local Python sidecar would also give real
+`output: "export"` (not needed on Vercel, required for Tauri), and no route handlers. A local Python sidecar would also give real
 PyTorch offline — a second route to Phase 2 if the server sandbox is too costly.

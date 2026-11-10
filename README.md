@@ -22,7 +22,11 @@ bun run typecheck
 bun run lint
 bun run test       # first run downloads NumPy for the Pyodide tests
 bun run build
+bun run e2e        # Playwright against the production build, using installed Chrome
 ```
+
+Every push to `main` deploys to production on Vercel, so run `bun run e2e` before
+pushing larger changes.
 
 ## Routes
 

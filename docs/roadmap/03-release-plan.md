@@ -7,12 +7,23 @@ the full curriculum is written down (see [open decisions](04-open-decisions.md))
 | Release | Theme | Main engineering item | Status |
 |---|---|---|---|
 | R1.0 | MVP 1: Module 0.1 Arrays, Vectorization & Broadcasting | Statement recorder, frames, broadcasting view | Done 2026-11-11 |
-| R1.1 | Launch MVP 1 and learn from it | Deploy, e2e tests, learner sessions | Next |
+| R1.1 | Launch MVP 1 and learn from it | e2e tests, learner sessions | Engineering done 2026-11-11; learner sessions open |
 | R2 | Phase 0 complete: NumPy for ML | New operation kinds (`@`, reductions, reshape, calls), multi-module content | |
 | R3 | Phase 1: ML foundations in NumPy | Loop-aware recording, charts from real data | |
 | R4 | Accounts and sync (only if learners return) | Thin backend, progress merge | |
 | R5 | Phase 2: Deep learning foundations | NumPy autograd in the browser; PyTorch decision | |
 | Later | Transformers, RL, Agentic AI, AI hints, desktop | | |
+
+### Does a release need a backend?
+
+| Release | Backend | Why |
+|---|---|---|
+| R1, R1.1 | No | Everything runs in the browser; Vercel only serves static pages. |
+| R2 | No | `@`, reductions and reshape run in Pyodide. |
+| R3 | No | Regression and gradient descent run in NumPy; scikit-learn is in Pyodide. |
+| R4 | **Yes, small** | Sign-in and cross-device progress. Managed auth + Postgres, not FastAPI. Only if learners return. |
+| R5 | Probably no | NumPy neural nets and autograd run in the browser. Only real PyTorch needs a server sandbox, decided after R3. |
+| AI hints (later) | Small proxy | Keeps the model API key off the browser. |
 
 ---
 
@@ -20,16 +31,23 @@ the full curriculum is written down (see [open decisions](04-open-decisions.md))
 
 Goal: real people use Module 0.1, and we know what to fix before building more.
 
-- Deploy as a static site (`output: "export"`), with a custom domain if available.
-- Close the gaps MVP 1 left unverified: Ex 01 and Ex 03 checks in a browser, tablet
-  layout, Pyodide load failure → Retry, reduced motion, keyboard-only walkthrough.
-- Playwright e2e for the core path: open lesson 07 → Run all → break `w` → see the
-  shape error → fix → Check solution → stars and XP → reload → progress kept.
-- Rename Phase 0 to its theme ("NumPy for ML"); Arrays becomes Module 0.1.
-- Feedback without tracking: a "Send feedback" link (mail or form) on every lesson.
-- Run 5–8 learner sessions with a fixed task script; write down where people got stuck.
+- [x] Deploy: Vercel builds and deploys every push to `main`. No separate CI/CD.
+  Because a push is a production deploy, run `bun run e2e` before pushing larger changes.
+- [x] Close the gaps MVP 1 left unverified, now covered by Playwright (`e2e/`, 19 tests):
+  Ex 01–04 checks, tablet and phone layouts, Pyodide load failure → Retry, reduced
+  motion, keyboard tabs, 10 s loop stop, theme, routes and 404, reset, corrupt storage.
+- [x] Playwright e2e for the core path: lesson 07 → step → break `w` → shape error →
+  fix → Check solution → stars → reload → progress kept.
+- [x] Found and fixed by the e2e suite: Pyodide's load time counted against the 10 s run
+  limit, so on a slow network the first run (or a theory demo) killed the runtime.
+- [x] Rename Phase 0 to its theme ("NumPy for ML"); Arrays is Module 0.1.
+- [ ] Feedback without tracking: a "Send feedback" link on every lesson (needs the
+  address or form to point to).
+- [ ] Run 5–8 learner sessions with a fixed task script; write down where people got
+  stuck. *(Owner runs these.)*
 
-Done when: the site is public, e2e passes in CI, and a short findings list exists.
+Done when: the learner sessions are done and a short findings list exists. R2 starts
+from that list: anything that blocks learners in Module 0.1 is fixed first.
 
 ## R2 — Phase 0 complete: NumPy for ML
 
