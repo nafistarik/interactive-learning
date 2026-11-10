@@ -34,15 +34,21 @@ export function formatShape(shape: number[]): string {
  * @param props.label - Name shown above the array.
  * @param props.snapshot - The array to draw.
  * @param props.tone - Colour role of the array.
+ * @param props.highlight - Flat (row-major) 0/1 marks of cells to highlight, from a frame.
+ * @param props.showIndices - Show each cell's position under it (1D arrays).
  */
 export function ArrayGrid({
   label,
   snapshot,
   tone,
+  highlight,
+  showIndices = false,
 }: {
   label: string;
   snapshot: ArraySnapshot;
   tone: ArrayTone;
+  highlight?: number[];
+  showIndices?: boolean;
 }) {
   const { layers } = gridLayers(snapshot);
   const shownLayers = layers.slice(0, MAX_LAYERS);
@@ -72,14 +78,24 @@ export function ArrayGrid({
             ) : null}
             {rows.slice(0, MAX_CELLS).map((row, rowIndex) => (
               <div key={rowIndex} className="flex gap-1">
-                {row.slice(0, MAX_CELLS).map((cell, cellIndex) => (
-                  <span
-                    key={cellIndex}
-                    className="min-w-9 rounded border border-line-strong bg-surface px-2 py-1 text-center tabular-nums"
-                  >
-                    {String(cell)}
-                  </span>
-                ))}
+                {row.slice(0, MAX_CELLS).map((cell, cellIndex) => {
+                  const flatIndex = (layer * rows.length + rowIndex) * row.length + cellIndex;
+                  const marked = highlight?.[flatIndex] === 1;
+                  return (
+                    <span key={cellIndex} className="grid justify-items-center gap-0.5">
+                      <span
+                        className={`min-w-9 rounded border px-2 py-1 text-center tabular-nums transition-colors ${
+                          marked
+                            ? "border-accent bg-accent text-accent-fg"
+                            : "border-line-strong bg-surface"
+                        }`}
+                      >
+                        {String(cell)}
+                      </span>
+                      {showIndices ? <span className="text-[10px] text-subtle">[{cellIndex}]</span> : null}
+                    </span>
+                  );
+                })}
               </div>
             ))}
           </div>
