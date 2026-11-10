@@ -1,4 +1,4 @@
-import type { OperationStep } from "@/features/execution/frames";
+import type { BinaryStep } from "@/features/execution/frames";
 import {
   analyseBroadcast,
   expandValues,
@@ -28,7 +28,7 @@ export function BroadcastView({
   phase,
   failureMessage,
 }: {
-  step: OperationStep;
+  step: BinaryStep;
   phase: BroadcastPhase;
   failureMessage: string | null;
 }) {

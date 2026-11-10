@@ -7,7 +7,7 @@ import { buildStages } from "@/features/visualization/broadcast";
 import { usePrefersReducedMotion } from "@/features/visualization/use-reduced-motion";
 
 import { ArrayGrid } from "./ArrayGrid";
-import { BroadcastView } from "./BroadcastView";
+import { OperationView } from "./OperationView";
 
 /** Time one stage stays on screen at speed 1×, in milliseconds. */
 const STAGE_MS = 1200;
@@ -68,7 +68,14 @@ export function FrameVisualizer({
             Operation {active.operation + 1} of {frame.operations.length} · stage {current + 1} of{" "}
             {stages.length}
           </p>
-          <BroadcastView step={operation} phase={active.phase === "show" ? "operands" : active.phase} failureMessage={failureMessage} />
+          <OperationView
+            key={active.operation}
+            step={operation}
+            phase={active.phase === "show" ? "operands" : active.phase}
+            failureMessage={failureMessage}
+            playing={!paused && !reducedMotion}
+            speed={speed}
+          />
         </>
       ) : null}
 

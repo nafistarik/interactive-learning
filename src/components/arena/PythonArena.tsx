@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useMemo, useState } from "react";
 
-import type { ExecutionFrame, RecordingOutcome } from "@/features/execution/frames";
+import { operandNames, type ExecutionFrame, type RecordingOutcome } from "@/features/execution/frames";
 import type { Exercise, ValidationOutcome } from "@/features/validation/types";
 import type { RuntimeStatus } from "@/features/execution/python-client";
 import { usePythonRuntime } from "@/features/execution/python-runtime-context";
@@ -111,7 +111,7 @@ export default function PythonArena({
   const fixDefinitions = useMemo(
     () =>
       failedStep && index >= 0
-        ? findOperandDefinitions(frames, index, [failedStep.leftName, failedStep.rightName])
+        ? findOperandDefinitions(frames, index, operandNames(failedStep))
         : [],
     [failedStep, frames, index],
   );

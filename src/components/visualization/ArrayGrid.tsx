@@ -1,5 +1,6 @@
 import type { ArraySnapshot } from "@/features/execution/frames";
 import { gridLayers } from "@/features/visualization/broadcast";
+import { formatValue } from "@/features/visualization/operations";
 
 /** Largest grid drawn per layer, and largest number of layers (brief Part 7.9). */
 const MAX_CELLS = 8;
@@ -36,6 +37,7 @@ export function formatShape(shape: number[]): string {
  * @param props.tone - Colour role of the array.
  * @param props.highlight - Flat (row-major) 0/1 marks of cells to highlight, from a frame.
  * @param props.showIndices - Show each cell's position under it (1D arrays).
+ * @param props.onCellClick - Makes cells buttons; called with the cell's flat index.
  */
 export function ArrayGrid({
   label,
@@ -43,12 +45,14 @@ export function ArrayGrid({
   tone,
   highlight,
   showIndices = false,
+  onCellClick,
 }: {
   label: string;
   snapshot: ArraySnapshot;
   tone: ArrayTone;
   highlight?: number[];
   showIndices?: boolean;
+  onCellClick?: (flatIndex: number) => void;
 }) {
   const { layers } = gridLayers(snapshot);
   const shownLayers = layers.slice(0, MAX_LAYERS);
@@ -83,15 +87,27 @@ export function ArrayGrid({
                   const marked = highlight?.[flatIndex] === 1;
                   return (
                     <span key={cellIndex} className="grid justify-items-center gap-0.5">
-                      <span
-                        className={`min-w-9 rounded border px-2 py-1 text-center tabular-nums transition-colors ${
-                          marked
-                            ? "border-accent bg-accent text-accent-fg"
-                            : "border-line-strong bg-surface"
-                        }`}
-                      >
-                        {String(cell)}
-                      </span>
+                      {onCellClick ? (
+                        <button
+                          type="button"
+                          onClick={() => onCellClick(flatIndex)}
+                          aria-pressed={marked}
+                          aria-label={`${label} cell ${flatIndex}: ${formatValue(cell)}`}
+                          className={`min-w-9 cursor-pointer rounded border px-2 py-1 text-center tabular-nums transition-colors ${
+                            marked ? "border-accent bg-accent text-accent-fg" : "border-line-strong bg-surface hover:border-accent"
+                          }`}
+                        >
+                          {formatValue(cell)}
+                        </button>
+                      ) : (
+                        <span
+                          className={`min-w-9 rounded border px-2 py-1 text-center tabular-nums transition-colors ${
+                            marked ? "border-accent bg-accent text-accent-fg" : "border-line-strong bg-surface"
+                          }`}
+                        >
+                          {formatValue(cell)}
+                        </span>
+                      )}
                       {showIndices ? <span className="text-[10px] text-subtle">[{cellIndex}]</span> : null}
                     </span>
                   );

@@ -26,6 +26,21 @@ OPERATORS = {
     ast.Div: ("/", operator.truediv),
 }
 
+COMPARATORS = {
+    ast.Gt: (">", operator.gt),
+    ast.GtE: (">=", operator.ge),
+    ast.Lt: ("<", operator.lt),
+    ast.LtE: ("<=", operator.le),
+    ast.Eq: ("==", operator.eq),
+    ast.NotEq: ("!=", operator.ne),
+}
+
+# Calls recorded as their own step (R2). Everything else is called normally, still once.
+REDUCERS = ("sum", "mean", "max", "min", "std")
+MATMULS = ("dot", "matmul")
+RESHAPERS = ("reshape", "transpose")
+RECORDED_CALLS = REDUCERS + MATMULS + RESHAPERS
+
 
 class OperationFailed(Exception):
     """An arithmetic step failed. Carries the operand shapes, which the UI explains."""
@@ -92,34 +107,146 @@ def name_of(node):
     return node.id if isinstance(node, ast.Name) else None
 
 
+def is_numpy(value):
+    return isinstance(value, types.ModuleType) and value.__name__ == "numpy"
+
+
+def simple_call(node):
+    """A call like f.name(a, b, k=v) with no *args or **kwargs, so each part can run once."""
+    return (
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and not any(isinstance(arg, ast.Starred) for arg in node.args)
+        and all(keyword.arg is not None for keyword in node.keywords)
+    )
+
+
+def attempt(step, compute, shapes, steps):
+    """Runs one recorded operation. Appends the step with its result, or without it and raises."""
+    try:
+        result = compute()
+    except Exception as failure:
+        steps.append(step)
+        raise OperationFailed(failure, shapes)
+    step["result"] = snapshot(result)
+    steps.append(step)
+    return result
+
+
+def binary(kind, symbol, function, left, right, left_node, right_node, steps):
+    """A two-operand step: element-wise arithmetic, a comparison, or a matrix product."""
+    left_snapshot = snapshot(left)
+    right_snapshot = snapshot(right)
+    step = {
+        "kind": kind,
+        "left": left_snapshot,
+        "right": right_snapshot,
+        "leftName": name_of(left_node),
+        "rightName": name_of(right_node),
+    }
+    if kind == "binary":
+        step["operator"] = symbol
+    shapes = [left_snapshot["shape"], right_snapshot["shape"]]
+    return attempt(step, lambda: function(left, right), shapes, steps)
+
+
+def axis_of(value):
+    """An axis argument the view can draw: None or one int. Other forms are not recorded."""
+    if value is None or (isinstance(value, (int, np.integer)) and not isinstance(value, bool)):
+        return True, (None if value is None else int(value))
+    return False, None
+
+
+def requested_shape(rest):
+    """The shape asked for in reshape(…): reshape(2, 3) or reshape((2, 3)); None if unclear."""
+    values = rest[0] if len(rest) == 1 and isinstance(rest[0], (tuple, list)) else rest
+    if len(rest) == 1 and isinstance(rest[0], (int, np.integer)):
+        values = [rest[0]]
+    try:
+        return [int(size) for size in values]
+    except (TypeError, ValueError):
+        return None
+
+
+def recorded_call(node, namespace, steps):
+    """Evaluates np.f(a, …) or a.f(…) for the recorded calls, each part exactly once."""
+    owner = evaluate(node.func.value, namespace, steps)
+    name = node.func.attr
+    args = [evaluate(arg, namespace, steps) for arg in node.args]
+    kwargs = {keyword.arg: evaluate(keyword.value, namespace, steps) for keyword in node.keywords}
+
+    if is_numpy(owner) and args:
+        subject, rest, subject_node, rest_nodes = args[0], args[1:], node.args[0], node.args[1:]
+        function = getattr(np, name)
+        call = lambda: function(subject, *rest, **kwargs)
+    elif isinstance(owner, np.ndarray):
+        subject, rest, subject_node, rest_nodes = owner, args, node.func.value, node.args
+        call = lambda: getattr(owner, name)(*rest, **kwargs)
+    else:
+        return getattr(owner, name)(*args, **kwargs)
+
+    if name in MATMULS and len(rest) == 1 and not kwargs:
+        return binary("matmul", "@", lambda left, right: call(), subject, rest[0], subject_node, rest_nodes[0], steps)
+
+    input_snapshot = snapshot(subject)
+    if name in REDUCERS:
+        axis_value = kwargs.get("axis", rest[0] if rest else None)
+        drawable, axis = axis_of(axis_value)
+        if not drawable:
+            return call()
+        step = {
+            "kind": "reduce",
+            "fn": name,
+            "input": input_snapshot,
+            "inputName": name_of(subject_node),
+            "axis": axis,
+            "keepdims": bool(kwargs.get("keepdims", False)),
+        }
+        return attempt(step, call, [input_snapshot["shape"]], steps)
+
+    if name == "reshape" and not rest:
+        return call()
+    step = {
+        "kind": "reshape",
+        "fn": name,
+        "input": input_snapshot,
+        "inputName": name_of(subject_node),
+        "requested": requested_shape(rest) if name == "reshape" else None,
+    }
+    return attempt(step, call, [input_snapshot["shape"]], steps)
+
+
 def evaluate(node, namespace, steps):
-    """Evaluates an expression once. Each arithmetic node appends one step, operands first."""
+    """Evaluates an expression once. Each recorded operation appends one step, operands first."""
     if isinstance(node, ast.BinOp) and type(node.op) in OPERATORS:
         symbol, function = OPERATORS[type(node.op)]
         left = evaluate(node.left, namespace, steps)
         right = evaluate(node.right, namespace, steps)
-        left_snapshot = snapshot(left)
-        right_snapshot = snapshot(right)
-        try:
-            result = function(left, right)
-        except Exception as failure:
-            steps.append({
-                "operator": symbol,
-                "left": left_snapshot,
-                "right": right_snapshot,
-                "leftName": name_of(node.left),
-                "rightName": name_of(node.right),
-            })
-            raise OperationFailed(failure, [left_snapshot["shape"], right_snapshot["shape"]])
-        steps.append({
-            "operator": symbol,
-            "left": left_snapshot,
-            "right": right_snapshot,
-            "leftName": name_of(node.left),
-            "rightName": name_of(node.right),
-            "result": snapshot(result),
-        })
-        return result
+        return binary("binary", symbol, function, left, right, node.left, node.right, steps)
+    if isinstance(node, ast.BinOp) and isinstance(node.op, ast.MatMult):
+        left = evaluate(node.left, namespace, steps)
+        right = evaluate(node.right, namespace, steps)
+        return binary("matmul", "@", operator.matmul, left, right, node.left, node.right, steps)
+    if isinstance(node, ast.Compare) and len(node.ops) == 1 and type(node.ops[0]) in COMPARATORS:
+        symbol, function = COMPARATORS[type(node.ops[0])]
+        left = evaluate(node.left, namespace, steps)
+        right = evaluate(node.comparators[0], namespace, steps)
+        return binary("binary", symbol, function, left, right, node.left, node.comparators[0], steps)
+    if isinstance(node, ast.Attribute) and node.attr == "T":
+        base = evaluate(node.value, namespace, steps)
+        if not isinstance(base, np.ndarray):
+            return base.T
+        input_snapshot = snapshot(base)
+        step = {
+            "kind": "reshape",
+            "fn": "transpose",
+            "input": input_snapshot,
+            "inputName": name_of(node.value),
+            "requested": None,
+        }
+        return attempt(step, lambda: base.T, [input_snapshot["shape"]], steps)
+    if simple_call(node) and node.func.attr in RECORDED_CALLS:
+        return recorded_call(node, namespace, steps)
     return eval(compile(ast.Expression(body=node), "<exec>", "eval"), namespace)
 
 
@@ -186,7 +313,7 @@ def record_editor(tree, code, namespace):
 
         kind = static_kind(statement)
         if steps and kind in ("assign", "expression"):
-            kind = "binary-op"
+            kind = "binary-op" if all(step["kind"] == "binary" for step in steps) else "operation"
 
         frame = {
             "index": len(frames),

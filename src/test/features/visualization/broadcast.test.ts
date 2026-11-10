@@ -58,6 +58,7 @@ describe("expandValues", () => {
 
 describe("buildStages", () => {
   const step: OperationStep = {
+    kind: "binary",
     operator: "*",
     left: { shape: [1], dtype: "int64", values: [1], truncated: false },
     right: { shape: [1], dtype: "int64", values: [1], truncated: false },

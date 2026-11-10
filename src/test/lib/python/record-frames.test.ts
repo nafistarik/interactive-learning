@@ -56,6 +56,9 @@ describe("recordFrames with Pyodide and NumPy", () => {
     expect(product.status).toBe("success");
     expect(product.operations).toHaveLength(1);
     const [step] = product.operations;
+    if (step.kind !== "binary") {
+      throw new Error(`expected a binary step, got ${step.kind}`);
+    }
     expect(step.operator).toBe("*");
     expect(step.leftName).toBe("X");
     expect(step.rightName).toBe("w");
@@ -101,7 +104,12 @@ describe("recordFrames with Pyodide and NumPy", () => {
       "out = X * w + b",
     ].join("\n");
     const frames = framesOf(recordFrames(pyodide, code));
-    const steps = frames[4].operations;
+    const steps = frames[4].operations.map((step) => {
+      if (step.kind !== "binary") {
+        throw new Error(`expected a binary step, got ${step.kind}`);
+      }
+      return step;
+    });
 
     expect(steps.map((step) => step.operator)).toEqual(["*", "+"]);
     expect(steps[0].result?.values).toEqual([10, 200, 30, 400]);

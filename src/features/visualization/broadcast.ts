@@ -134,21 +134,22 @@ export interface AnimationStage {
 }
 
 /**
- * The ordered stages a frame plays through. Each arithmetic step has three stages: operands,
- * alignment, result. A frame without arithmetic has one stage.
+ * The ordered stages a frame plays through. Arithmetic, matrix products and reductions have
+ * three stages (operands, the rule that applies, result); a reshape or transpose has two. A
+ * frame without recorded operations has one stage.
  *
- * @param operations - The arithmetic sub-steps of the frame.
+ * @param operations - The recorded sub-steps of the frame.
  * @returns The stages in play order.
  */
 export function buildStages(operations: OperationStep[]): AnimationStage[] {
   if (operations.length === 0) {
     return [{ operation: -1, phase: "show" }];
   }
-  return operations.flatMap((_, operation) => [
-    { operation, phase: "operands" as const },
-    { operation, phase: "align" as const },
-    { operation, phase: "result" as const },
-  ]);
+  return operations.flatMap((step, operation) =>
+    (step.kind === "reshape" ? (["operands", "result"] as const) : (["operands", "align", "result"] as const)).map(
+      (phase) => ({ operation, phase }),
+    ),
+  );
 }
 
 /**

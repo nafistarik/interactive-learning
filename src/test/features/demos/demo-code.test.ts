@@ -111,7 +111,7 @@ describe("demo code runs in Pyodide", () => {
 
   it("lesson 08 records X * w then (X * w) + b", () => {
     const frame = last(XWB_CODE);
-    expect(frame.operations.map((step) => step.operator)).toEqual(["*", "+"]);
+    expect(frame.operations.map((step) => (step.kind === "binary" ? step.operator : step.kind))).toEqual(["*", "+"]);
     expect(frame.operations[1].result?.values).toEqual([10.5, 18, 11.5, 16, 12.5, 14]);
   });
 });

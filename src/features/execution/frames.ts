@@ -25,20 +25,69 @@ export interface VariableSnapshot {
   repr?: string;
 }
 
-/** One arithmetic sub-step. `result` is absent when the operation failed. */
-export interface OperationStep {
-  operator: "+" | "-" | "*" | "/";
+/** Operators of a `binary` step: element-wise arithmetic and comparisons. */
+export type BinaryOperator = "+" | "-" | "*" | "/" | ">" | ">=" | "<" | "<=" | "==" | "!=";
+
+/** Operand names, shared by the two-operand steps. `null` when an operand is not a plain name. */
+interface TwoOperands {
   left: ArraySnapshot;
   right: ArraySnapshot;
-  /** Variable name of the left operand, or `null` when it is not a plain name. */
   leftName: string | null;
-  /** Variable name of the right operand, or `null` when it is not a plain name. */
   rightName: string | null;
+  /** Absent when the operation failed. */
   result?: ArraySnapshot;
 }
 
+/** Element-wise arithmetic or a comparison, with broadcasting. */
+export interface BinaryStep extends TwoOperands {
+  kind: "binary";
+  operator: BinaryOperator;
+}
+
+/** A matrix product: `a @ b`, `np.dot`, `np.matmul`, `a.dot(b)`. */
+export interface MatmulStep extends TwoOperands {
+  kind: "matmul";
+}
+
+/** One input, as recorded for reductions and reshapes. */
+interface OneOperand {
+  input: ArraySnapshot;
+  inputName: string | null;
+  /** Absent when the operation failed. */
+  result?: ArraySnapshot;
+}
+
+/** A reduction along one axis, or over the whole array when `axis` is `null`. */
+export interface ReduceStep extends OneOperand {
+  kind: "reduce";
+  fn: "sum" | "mean" | "max" | "min" | "std";
+  axis: number | null;
+  keepdims: boolean;
+}
+
+/** A reshape (with the requested shape, when it could be read) or a transpose. */
+export interface ReshapeStep extends OneOperand {
+  kind: "reshape";
+  fn: "reshape" | "transpose";
+  requested: number[] | null;
+}
+
+/** One recorded sub-step of a statement, in evaluation order. */
+export type OperationStep = BinaryStep | MatmulStep | ReduceStep | ReshapeStep;
+
+/**
+ * The operand variable names of a step, for pointing at the line to fix when it fails.
+ *
+ * @param step - The step.
+ * @returns The names (`null` for operands that are not plain names).
+ */
+export function operandNames(step: OperationStep): (string | null)[] {
+  return step.kind === "binary" || step.kind === "matmul" ? [step.leftName, step.rightName] : [step.inputName];
+}
+
 /** Kind of statement a frame records. */
-export type OperationType = "import" | "assign" | "expression" | "binary-op" | "not-visualised";
+/** `binary-op`: only element-wise steps; `operation`: at least one other recorded step. */
+export type OperationType = "import" | "assign" | "expression" | "binary-op" | "operation" | "not-visualised";
 
 /** One top-level statement of the editor code, after it ran. */
 export interface ExecutionFrame {
