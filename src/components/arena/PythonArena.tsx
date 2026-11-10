@@ -150,7 +150,7 @@ export default function PythonArena({
       return null;
     }
     setRunning(true);
-    const outcome = await client.record(code);
+    const outcome = await client.record(code, exercise?.prelude ?? "");
     setRecording(outcome);
     setRunId((value) => value + 1);
     setRunning(false);
