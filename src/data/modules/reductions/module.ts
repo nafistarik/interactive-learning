@@ -15,7 +15,7 @@ export const REDUCTIONS_MODULE: ModuleDef = {
     "Use keepdims=True so a reduction broadcasts back against its array",
     "Standardize features column-wise, as done before training many models",
   ],
-  available: false,
+  available: true,
   lessons: [
     { id: "01", title: "Reducing an Array" },
     { id: "02", title: "Axes: Rows or Columns" },

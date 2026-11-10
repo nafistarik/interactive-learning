@@ -16,7 +16,7 @@ export const MATMUL_MODULE: ModuleDef = {
     "Tell element-wise * apart from matrix multiplication @",
     "Compute X @ W + b, the linear layer of machine learning models",
   ],
-  available: false,
+  available: true,
   lessons: [
     { id: "01", title: "Vectors and the Dot Product" },
     { id: "02", title: "Matrix Times Vector" },

@@ -16,7 +16,7 @@ export const RESHAPE_MODULE: ModuleDef = {
     "Build boolean masks from comparisons and combine them with &, | and ~",
     "Select values and rows with a[mask], and choose values with np.where",
   ],
-  available: false,
+  available: true,
   lessons: [
     { id: "01", title: "Reshape and -1" },
     { id: "02", title: "Transpose and .T" },
