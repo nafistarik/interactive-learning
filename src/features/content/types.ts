@@ -27,7 +27,33 @@ export type ContentBlock =
   | { kind: "code"; code: string; output: string }
   /** A short highlighted note, for a definition or a warning. */
   | { kind: "note"; text: string }
-  | { kind: "demo"; demo: DemoId };
+  | { kind: "demo"; demo: DemoId }
+  /** A data-defined demo: controls fill a code template that the real recorder runs. */
+  | { kind: "playground"; demo: PlaygroundDemo };
+
+/** One control of a playground demo. Its value replaces `{{name}}` in the template. */
+export type PlaygroundControl =
+  | {
+      type: "select";
+      name: string;
+      label: string;
+      /** `value` is Python source inserted as is; only these authored values can be chosen. */
+      options: { label: string; value: string }[];
+    }
+  | { type: "number"; name: string; label: string; min: number; max: number; initial: number };
+
+/**
+ * A playground demo: the learner moves the controls, the filled template is recorded with the
+ * real recorder, and the last recorded operation (or the listed variables) is drawn.
+ */
+export interface PlaygroundDemo {
+  title: string;
+  controls: PlaygroundControl[];
+  /** Python with `{{name}}` placeholders, one per control. */
+  template: string;
+  /** Variables to draw when the last statement has no recorded operation. */
+  show?: string[];
+}
 
 /** A titled part of a lesson's theory. */
 export interface ContentSection {

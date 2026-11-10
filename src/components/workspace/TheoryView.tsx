@@ -3,6 +3,7 @@
 import { Code2, Info } from "lucide-react";
 
 import { DemoBlock } from "@/components/demos/DemoBlock";
+import { PlaygroundDemoView } from "@/components/demos/PlaygroundDemoView";
 import { CodeExample } from "@/components/theory/CodeExample";
 import { InlineText } from "@/components/theory/InlineText";
 import { KnowledgeCheck } from "@/components/theory/KnowledgeCheck";
@@ -45,6 +46,8 @@ function Block({ block }: { block: ContentBlock }) {
       return <CodeExample code={block.code} output={block.output} />;
     case "demo":
       return <DemoBlock demo={block.demo} />;
+    case "playground":
+      return <PlaygroundDemoView demo={block.demo} />;
   }
 }
 
