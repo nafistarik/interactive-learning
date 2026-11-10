@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 
-import { lessonStatusOf, type LessonStatus } from "@/features/progress/model";
+import { lessonStatusOf } from "@/features/progress/model";
 import { useProgress } from "@/features/progress/progress-context";
+import { LESSON_STATUS_TEXT } from "@/data/ui-text";
 
 /** A lesson row as the module page passes it in. */
 export interface LessonRow {
@@ -12,13 +13,6 @@ export interface LessonRow {
   hasExercise: boolean;
   exerciseId: string | undefined;
 }
-
-/** Text shown for each lesson status. */
-const STATUS_TEXT: Record<LessonStatus, string> = {
-  "not-started": "Not started",
-  "exercise-passed": "Exercise passed",
-  completed: "Completed",
-};
 
 /**
  * The module's lessons with their status (brief Part 4.2).
@@ -43,7 +37,7 @@ export function LessonList({ lessons }: { lessons: LessonRow[] }) {
               </span>
               <span className="flex gap-3 text-xs text-subtle">
                 {lesson.hasExercise ? <span>Exercise</span> : null}
-                <span>{loaded ? STATUS_TEXT[status] : "…"}</span>
+                <span>{loaded ? LESSON_STATUS_TEXT[status] : "…"}</span>
               </span>
             </Link>
           </li>

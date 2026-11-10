@@ -27,6 +27,9 @@ export function parseProgress(raw: string | null): ProgressState {
   const completedLessons = Array.isArray(data.completedLessons)
     ? data.completedLessons.filter((id): id is string => typeof id === "string")
     : [];
+  const passedChecks = Array.isArray(data.passedChecks)
+    ? data.passedChecks.filter((id): id is string => typeof id === "string")
+    : [];
   const exercises: Record<string, ExerciseProgress> = {};
   if (isRecord(data.exercises)) {
     for (const [id, value] of Object.entries(data.exercises)) {
@@ -39,6 +42,7 @@ export function parseProgress(raw: string | null): ProgressState {
     version: 1,
     currentLesson: typeof data.currentLesson === "string" ? data.currentLesson : null,
     completedLessons,
+    passedChecks,
     exercises,
   };
 }

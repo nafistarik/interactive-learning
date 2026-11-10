@@ -19,6 +19,8 @@ export interface ProgressState {
   version: 1;
   currentLesson: string | null;
   completedLessons: string[];
+  /** Lessons whose knowledge check passed (every question answered correctly). */
+  passedChecks: string[];
   exercises: Record<string, ExerciseProgress>;
 }
 
@@ -35,7 +37,7 @@ export const MODULE_LESSON_COUNT = 8;
  * @returns The empty state.
  */
 export function emptyProgress(): ProgressState {
-  return { version: 1, currentLesson: null, completedLessons: [], exercises: {} };
+  return { version: 1, currentLesson: null, completedLessons: [], passedChecks: [], exercises: {} };
 }
 
 /**
@@ -107,7 +109,7 @@ export function setCurrentLesson(state: ProgressState, lessonId: string): Progre
 }
 
 /**
- * Marks a lesson complete. Used when its knowledge check passes; no screen calls it yet.
+ * Marks a lesson complete without checking why. Prefer {@link completeIfReady}.
  *
  * @param state - The current progress.
  * @param lessonId - The lesson's two-digit id.
@@ -149,11 +151,11 @@ export function totalsOf(state: ProgressState): ProgressTotals {
 }
 
 /** What a lesson's row says on the module and progress pages. */
-export type LessonStatus = "not-started" | "exercise-passed" | "completed";
+export type LessonStatus = "not-started" | "in-progress" | "completed";
 
 /**
- * Status of one lesson. A lesson is completed when its knowledge check passed (recorded with
- * `markLessonCompleted`); with an exercise, the exercise passing is shown as its own status.
+ * Status of one lesson: completed (see {@link completeIfReady}), in progress when only one of its
+ * check and exercise passed, or not started.
  *
  * @param state - The current progress.
  * @param lessonId - The lesson's two-digit id.
@@ -168,8 +170,46 @@ export function lessonStatusOf(
   if (state.completedLessons.includes(lessonId)) {
     return "completed";
   }
-  if (exerciseId && state.exercises[exerciseId]?.passed) {
-    return "exercise-passed";
+  if (state.passedChecks.includes(lessonId) || (exerciseId && state.exercises[exerciseId]?.passed)) {
+    return "in-progress";
   }
   return "not-started";
+}
+
+/**
+ * Completes a lesson once it qualifies (brief Part 11): its knowledge check passed and, if it
+ * has an exercise, the exercise passed.
+ *
+ * @param state - The current progress.
+ * @param lessonId - The lesson's two-digit id.
+ * @param exerciseId - The lesson's exercise id, if it has one.
+ * @returns The new progress.
+ */
+export function completeIfReady(
+  state: ProgressState,
+  lessonId: string,
+  exerciseId: string | undefined,
+): ProgressState {
+  const checkPassed = state.passedChecks.includes(lessonId);
+  const exerciseDone = exerciseId === undefined || state.exercises[exerciseId]?.passed === true;
+  return checkPassed && exerciseDone ? markLessonCompleted(state, lessonId) : state;
+}
+
+/**
+ * Records that a lesson's knowledge check passed, and completes the lesson if it now qualifies.
+ *
+ * @param state - The current progress.
+ * @param lessonId - The lesson's two-digit id.
+ * @param exerciseId - The lesson's exercise id, if it has one.
+ * @returns The new progress.
+ */
+export function recordKnowledgeCheck(
+  state: ProgressState,
+  lessonId: string,
+  exerciseId: string | undefined,
+): ProgressState {
+  const next = state.passedChecks.includes(lessonId)
+    ? state
+    : { ...state, passedChecks: [...state.passedChecks, lessonId] };
+  return completeIfReady(next, lessonId, exerciseId);
 }

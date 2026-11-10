@@ -17,8 +17,9 @@ import { loadProgress, PROGRESS_KEY, saveProgress } from "@/lib/storage/progress
 
 import {
   emptyProgress,
-  markLessonCompleted,
+  completeIfReady,
   recordCheck,
+  recordKnowledgeCheck,
   recordHintUsed,
   setCurrentLesson,
   type ProgressState,
@@ -27,10 +28,10 @@ import {
 /** Actions that change the progress. */
 type ProgressAction =
   | { type: "load"; state: ProgressState }
-  | { type: "check"; exerciseId: string; passed: boolean }
+  | { type: "check"; exerciseId: string; lessonId: string; passed: boolean }
+  | { type: "knowledge"; lessonId: string; exerciseId: string | undefined }
   | { type: "hint"; exerciseId: string }
   | { type: "visit"; lessonId: string }
-  | { type: "complete"; lessonId: string }
   | { type: "reset" };
 
 /**
@@ -45,13 +46,17 @@ function reducer(state: ProgressState, action: ProgressAction): ProgressState {
     case "load":
       return action.state;
     case "check":
-      return recordCheck(state, action.exerciseId, action.passed);
+      return completeIfReady(
+        recordCheck(state, action.exerciseId, action.passed),
+        action.lessonId,
+        action.exerciseId,
+      );
+    case "knowledge":
+      return recordKnowledgeCheck(state, action.lessonId, action.exerciseId);
     case "hint":
       return recordHintUsed(state, action.exerciseId);
     case "visit":
       return setCurrentLesson(state, action.lessonId);
-    case "complete":
-      return markLessonCompleted(state, action.lessonId);
     case "reset":
       return emptyProgress();
   }
@@ -62,10 +67,12 @@ export interface ProgressContextValue {
   state: ProgressState;
   /** False until the saved progress has been read, so pages do not flash zeros as data. */
   loaded: boolean;
-  recordCheck: (exerciseId: string, passed: boolean) => void;
+  /** Records one exercise check; `lessonId` is the exercise's lesson, completed if it qualifies. */
+  recordCheck: (exerciseId: string, lessonId: string, passed: boolean) => void;
+  /** Records a passed knowledge check; completes the lesson if it qualifies. */
+  passKnowledgeCheck: (lessonId: string, exerciseId: string | undefined) => void;
   recordHint: (exerciseId: string) => void;
   visitLesson: (lessonId: string) => void;
-  completeLesson: (lessonId: string) => void;
   reset: () => void;
 }
 
@@ -104,12 +111,17 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   }, [state, loaded]);
 
   const recordCheckAction = useCallback(
-    (exerciseId: string, passed: boolean) => dispatch({ type: "check", exerciseId, passed }),
+    (exerciseId: string, lessonId: string, passed: boolean) =>
+      dispatch({ type: "check", exerciseId, lessonId, passed }),
     [],
   );
   const recordHint = useCallback((exerciseId: string) => dispatch({ type: "hint", exerciseId }), []);
   const visitLesson = useCallback((lessonId: string) => dispatch({ type: "visit", lessonId }), []);
-  const completeLesson = useCallback((lessonId: string) => dispatch({ type: "complete", lessonId }), []);
+  const passKnowledgeCheck = useCallback(
+    (lessonId: string, exerciseId: string | undefined) =>
+      dispatch({ type: "knowledge", lessonId, exerciseId }),
+    [],
+  );
   const reset = useCallback(() => {
     removeStoredValue(getBrowserStorage(), PROGRESS_KEY);
     resettingRef.current = true;
@@ -123,10 +135,10 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       recordCheck: recordCheckAction,
       recordHint,
       visitLesson,
-      completeLesson,
+      passKnowledgeCheck,
       reset,
     }),
-    [state, loaded, recordCheckAction, recordHint, visitLesson, completeLesson, reset],
+    [state, loaded, recordCheckAction, recordHint, visitLesson, passKnowledgeCheck, reset],
   );
 
   return <ProgressContext.Provider value={value}>{children}</ProgressContext.Provider>;

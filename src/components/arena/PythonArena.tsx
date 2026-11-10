@@ -190,7 +190,7 @@ export default function PythonArena({
     const outcome = await client.validate(code, exercise.runs, exercise.checks);
     setVerdict(outcome);
     setAttempts((value) => value + 1);
-    progress.recordCheck(exercise.id, outcome.passed);
+    progress.recordCheck(exercise.id, exercise.lessonId, outcome.passed);
     setChecking(false);
   }
 

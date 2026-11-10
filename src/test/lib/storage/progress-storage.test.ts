@@ -42,6 +42,7 @@ describe("parseProgress", () => {
       version: 1,
       currentLesson: "07",
       completedLessons: ["01", 5, "02"],
+      passedChecks: ["01", null],
       exercises: {
         ex02: { passed: true, attempts: 2, hintUsed: false, stars: 3 },
         ex03: { passed: "yes" },
@@ -52,11 +53,18 @@ describe("parseProgress", () => {
 
     expect(state.currentLesson).toBe("07");
     expect(state.completedLessons).toEqual(["01", "02"]);
+    expect(state.passedChecks).toEqual(["01"]);
     expect(Object.keys(state.exercises)).toEqual(["ex02"]);
   });
 });
 
 describe("saveProgress and loadProgress", () => {
+  it("reads a version 1 value saved before passedChecks existed", () => {
+    const raw = JSON.stringify({ version: 1, currentLesson: null, completedLessons: [], exercises: {} });
+
+    expect(parseProgress(raw).passedChecks).toEqual([]);
+  });
+
   it("round-trips a progress through storage under the versioned key", () => {
     const storage = memoryStorage();
     const state = recordCheck(emptyProgress(), "ex02", true);

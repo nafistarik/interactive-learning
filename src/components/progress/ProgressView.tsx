@@ -7,13 +7,7 @@ import { ARRAYS_MODULE } from "@/data/arrays-module";
 import { EXERCISES } from "@/data/exercises";
 import { lessonStatusOf, totalsOf } from "@/features/progress/model";
 import { useProgress } from "@/features/progress/progress-context";
-
-/** Status text per lesson on the progress page. */
-const STATUS_TEXT = {
-  "not-started": "Not started",
-  "exercise-passed": "Exercise passed",
-  completed: "Completed",
-} as const;
+import { LESSON_STATUS_TEXT } from "@/data/ui-text";
 
 /**
  * The progress page (brief Part 4.4): totals, per-lesson status, exercise stars, and Reset
@@ -62,7 +56,7 @@ export function ProgressView() {
                   {lesson.id}. {lesson.title}
                 </Link>
                 <span className="text-subtle">
-                  {STATUS_TEXT[lessonStatusOf(state, lesson.id, exercise?.id)]}
+                  {LESSON_STATUS_TEXT[lessonStatusOf(state, lesson.id, exercise?.id)]}
                 </span>
               </li>
             );

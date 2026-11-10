@@ -5,6 +5,7 @@ import {
   lessonStatusOf,
   markLessonCompleted,
   recordCheck,
+  recordKnowledgeCheck,
   recordHintUsed,
   setCurrentLesson,
   starsFor,
@@ -95,7 +96,7 @@ describe("lessonStatusOf", () => {
   it("shows exercise passed before the lesson is completed", () => {
     const passed = recordCheck(emptyProgress(), "ex02", true);
 
-    expect(lessonStatusOf(passed, "06", "ex02")).toBe("exercise-passed");
+    expect(lessonStatusOf(passed, "06", "ex02")).toBe("in-progress");
     expect(lessonStatusOf(markLessonCompleted(passed, "06"), "06", "ex02")).toBe("completed");
     expect(lessonStatusOf(passed, "01", undefined)).toBe("not-started");
   });
@@ -104,5 +105,33 @@ describe("lessonStatusOf", () => {
 describe("setCurrentLesson", () => {
   it("remembers the lesson the learner opened", () => {
     expect(setCurrentLesson(emptyProgress(), "07").currentLesson).toBe("07");
+  });
+});
+
+describe("lesson completion (brief Part 11)", () => {
+  it("completes a lesson without an exercise when its check passes", () => {
+    const state = recordKnowledgeCheck(emptyProgress(), "01", undefined);
+
+    expect(state.completedLessons).toEqual(["01"]);
+    expect(totalsOf(state).xp).toBe(50);
+  });
+
+  it("waits for the exercise when the check passes first", () => {
+    let state = recordKnowledgeCheck(emptyProgress(), "06", "ex02");
+    expect(state.completedLessons).toEqual([]);
+    expect(lessonStatusOf(state, "06", "ex02")).toBe("in-progress");
+
+    state = recordCheck(state, "ex02", true);
+    state = recordKnowledgeCheck(state, "06", "ex02");
+    expect(state.completedLessons).toEqual(["06"]);
+    expect(totalsOf(state).xp).toBe(150);
+  });
+
+  it("never counts a repeated check twice", () => {
+    let state = recordKnowledgeCheck(emptyProgress(), "01", undefined);
+    state = recordKnowledgeCheck(state, "01", undefined);
+
+    expect(state.passedChecks).toEqual(["01"]);
+    expect(totalsOf(state).xp).toBe(50);
   });
 });
