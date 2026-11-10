@@ -59,16 +59,18 @@ Today `OperationStep.operator` is `"+" | "-" | "*" | "/"`. Each release adds ope
 | Kind | Release | Records | Visualization |
 |---|---|---|---|
 | `binary` (`+ - * /`) | R1 ✓ | left, right, result snapshots | element-wise + broadcasting |
-| `matmul` (`@`) | R2 | left, right, result; shapes `(m,k)·(k,n)` | row × column dot products |
-| `reduce` (`sum`, `mean`, `max`, `min`, with `axis`) | R2 | input, axis, result | collapse along an axis |
-| `reshape` / `transpose` | R2 | input, new shape, result | element order kept, grid re-flowed |
-| `call` (whitelisted ufuncs: `np.exp`, `np.maximum`, …) | R2 | inputs, result | per-element function |
+| `matmul` (`@`, `np.dot`, `np.matmul`) | R2 ✓ | left, right, result; shapes `(m,k)·(k,n)` | row × column dot products |
+| `reduce` (`sum`, `mean`, `max`, `min`, `std`, with `axis`, `keepdims`) | R2 ✓ | input, axis, result | collapse along an axis |
+| `reshape` / `transpose` (`.T`) | R2 ✓ | input, requested shape, result | element traced from input to result |
+| comparisons (`>`, `==`, …) as `binary` | R2 ✓ | as binary, boolean result | element-wise view |
+| `call` (ufuncs: `np.exp`, `np.maximum`, …) | R3 | inputs, result | per-element function |
 | `loop` | R3 | per-iteration snapshots of watched variables, capped | iteration scrubber, live charts |
 
 A visualization registry maps kind → component; an unknown kind falls back to the
 before/after array view.
 
-Frames gain a `contractVersion` field in R2 so a cached old worker never feeds new UI.
+No `contractVersion` is needed: the worker is bundled with the page, so both always come
+from the same deploy.
 
 ## Storage
 

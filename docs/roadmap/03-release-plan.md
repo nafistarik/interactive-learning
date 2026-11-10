@@ -8,7 +8,7 @@ the full curriculum is written down (see [open decisions](04-open-decisions.md))
 |---|---|---|---|
 | R1.0 | MVP 1: Module 0.1 Arrays, Vectorization & Broadcasting | Statement recorder, frames, broadcasting view | Done 2026-11-11 |
 | R1.1 | Launch MVP 1 and learn from it | e2e tests, learner sessions | Engineering done 2026-11-11; learner sessions open |
-| R2 | Phase 0 complete: NumPy for ML | New operation kinds (`@`, reductions, reshape, calls), multi-module content | |
+| R2 | Phase 0 complete: NumPy for ML | New operation kinds (`@`, reductions, reshape, calls), multi-module content | Done 2026-11-11 ([brief](../r2/README.md)) |
 | R3 | Phase 1: ML foundations in NumPy | Loop-aware recording, charts from real data | |
 | R4 | Accounts and sync (only if learners return) | Thin backend, progress merge | |
 | R5 | Phase 2: Deep learning foundations | NumPy autograd in the browser; PyTorch decision | |
@@ -50,6 +50,12 @@ Done when: the learner sessions are done and a short findings list exists. R2 st
 from that list: anything that blocks learners in Module 0.1 is fixed first.
 
 ## R2 — Phase 0 complete: NumPy for ML
+
+**Done 2026-11-11.** Modules 0.2 (`matmul`), 0.3 (`reductions`) and 0.4 (`reshape`) are
+open, 4 lessons and 3 exercises each. Built as planned below, plus data-defined
+"playground" demos and the [authoring guide](../authoring.md). Not done from this list:
+nothing; `contractVersion` was dropped because the worker ships in the same bundle as the
+page, so they cannot disagree.
 
 Goal: the learner can read and write the NumPy that ML code is made of.
 

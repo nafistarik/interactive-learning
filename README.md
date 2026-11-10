@@ -1,12 +1,15 @@
-# Interactive Learning — MVP 1: Arrays, Vectorization & Broadcasting
+# Interactive Learning
 
 Learners write real Python in the browser, step through it statement by statement, and
-watch arrays, element-wise operations and broadcasting happen, driven by the actual NumPy
-results. No backend: Python runs in a Web Worker with Pyodide (pinned `0.29.4`, from the
-jsDelivr CDN). Progress is saved in LocalStorage (`vlp:progress:v1`).
+watch arrays, broadcasting, matrix products, reductions and reshapes happen, driven by the
+actual NumPy results. Phase 0 "NumPy for ML" has four modules (0.1 Arrays, 0.2 Matrix
+multiplication, 0.3 Reductions, 0.4 Reshape & masks). No backend: Python runs in a Web
+Worker with Pyodide (pinned `0.29.4`, from the jsDelivr CDN). Progress is saved in
+LocalStorage (`vlp:progress:v2`; MVP 1's `v1` value is migrated).
 
-The MVP 1 brief is in [`docs/mvp/`](docs/mvp/README.md); the product roadmap, the
-architecture and the release plan are in [`docs/roadmap/`](docs/roadmap/README.md).
+Briefs: MVP 1 in [`docs/mvp/`](docs/mvp/README.md), R2 in [`docs/r2/`](docs/r2/README.md).
+Roadmap, architecture and release plan: [`docs/roadmap/`](docs/roadmap/README.md). Adding
+content: [`docs/authoring.md`](docs/authoring.md).
 
 ## Run it
 
@@ -33,8 +36,8 @@ pushing larger changes.
 | Route | Page |
 |---|---|
 | `/` | Dashboard: module progress, XP, stars, Continue learning, roadmap |
-| `/learn/arrays` | Module overview: objectives, time, lessons with status |
-| `/learn/arrays/lesson/01` … `08` | Workspace: Theory (content, demo, knowledge check) and Practice (editor, visualization, timeline, inspector) |
+| `/learn/[module]` | Module overview: objectives, time, lessons with status (`arrays`, `matmul`, `reductions`, `reshape`) |
+| `/learn/[module]/lesson/[lessonId]` | Workspace: Theory (content, demo, knowledge check) and Practice (editor, visualization, timeline, inspector) |
 | `/progress` | Totals, per-lesson and per-exercise status, Reset progress |
 
 ## How execution works
