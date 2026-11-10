@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { PythonRunResult } from "@/lib/python/run-python";
 import type { WorkerMessage, WorkerRequest } from "@/features/execution/protocol";
 import {
+  LOAD_TIMEOUT_MS,
   PythonClient,
   RUN_TIMEOUT_MS,
   STOPPED_MESSAGE,
@@ -48,6 +49,16 @@ function healthyWorker(): FakeWorker {
     }
     return [{ kind: "result", id: request.id, outcome: { kind: "run", result: OK_RESULT } }];
   });
+}
+
+/** A worker whose runtime loads, then never answers a request (a runaway run). */
+function hungWorker(): FakeWorker {
+  return new FakeWorker(() => [{ kind: "status", stage: "ready" }]);
+}
+
+/** Sends a message from a fake worker to the client, as the real worker would later. */
+function emit(worker: FakeWorker, message: WorkerMessage): void {
+  worker.onmessage?.(new MessageEvent<WorkerMessage>("message", { data: message }));
 }
 
 describe("PythonClient", () => {
@@ -107,7 +118,7 @@ describe("PythonClient", () => {
   });
 
   it("stops a run that exceeds the time limit, terminates its worker and starts a fresh one", async () => {
-    const hung = new FakeWorker(() => null);
+    const hung = hungWorker();
     const fresh = healthyWorker();
     const workers = [hung, fresh];
     const client = new PythonClient(() => {
@@ -130,7 +141,7 @@ describe("PythonClient", () => {
   });
 
   it("stops a recording that exceeds the time limit with a failed recording", async () => {
-    const client = new PythonClient(() => new FakeWorker(() => null), () => undefined);
+    const client = new PythonClient(() => hungWorker(), () => undefined);
 
     const pending = client.record("while True: pass");
     await vi.advanceTimersByTimeAsync(RUN_TIMEOUT_MS);
@@ -159,5 +170,66 @@ describe("PythonClient", () => {
     await expect(pending).resolves.toEqual({ ok: false, stdout: "", error: "Run cancelled." });
     expect(worker.terminated).toBe(true);
     expect(statuses.at(-1)).toEqual({ state: "idle" });
+  });
+
+  it("does not count the runtime's loading time against the run limit", async () => {
+    const worker = new FakeWorker(() => null);
+    const client = new PythonClient(() => worker, () => undefined);
+
+    let settled = false;
+    const pending = client.run("print(1)").then((result) => {
+      settled = true;
+      return result;
+    });
+    // Loading takes longer than the run limit: the run must keep waiting.
+    await vi.advanceTimersByTimeAsync(RUN_TIMEOUT_MS * 3);
+    expect(settled).toBe(false);
+    expect(worker.terminated).toBe(false);
+
+    emit(worker, { kind: "status", stage: "ready" });
+    const id = worker.requests[0].kind === "run" ? worker.requests[0].id : -1;
+    emit(worker, { kind: "result", id, outcome: { kind: "run", result: OK_RESULT } });
+    await expect(pending).resolves.toEqual(OK_RESULT);
+  });
+
+  it("starts the run limit once the runtime is ready", async () => {
+    const worker = new FakeWorker(() => null);
+    const client = new PythonClient(() => worker, () => undefined);
+
+    const pending = client.run("while True: pass");
+    await vi.advanceTimersByTimeAsync(RUN_TIMEOUT_MS * 2);
+    emit(worker, { kind: "status", stage: "ready" });
+    await vi.advanceTimersByTimeAsync(RUN_TIMEOUT_MS);
+
+    await expect(pending).resolves.toEqual({ ok: false, stdout: "", error: STOPPED_MESSAGE });
+    expect(worker.terminated).toBe(true);
+  });
+
+  it("fails a load that never finishes, and Retry uses a fresh worker", async () => {
+    const stalled = new FakeWorker(() => null);
+    const fresh = healthyWorker();
+    const workers = [stalled, fresh];
+    const client = new PythonClient(() => workers.shift() ?? fresh, (status) => statuses.push(status));
+
+    client.warm();
+    await vi.advanceTimersByTimeAsync(LOAD_TIMEOUT_MS);
+    expect(statuses.at(-1)).toEqual({ state: "failed" });
+    expect(stalled.terminated).toBe(true);
+
+    client.warm();
+    expect(statuses.at(-1)).toEqual({ state: "ready" });
+  });
+
+  it("drops the worker after a load failure, so Retry starts a fresh one", async () => {
+    const broken = new FakeWorker((request) => (request.kind === "load" ? [{ kind: "load-failed" }] : null));
+    const fresh = healthyWorker();
+    const workers = [broken, fresh];
+    const client = new PythonClient(() => workers.shift() ?? fresh, (status) => statuses.push(status));
+
+    client.warm();
+    expect(broken.terminated).toBe(true);
+    expect(statuses.at(-1)).toEqual({ state: "failed" });
+
+    await expect(client.run("print(1)")).resolves.toEqual(OK_RESULT);
   });
 });

@@ -8,6 +8,16 @@ import type { LoadStage, WorkerMessage, WorkerOutcome, WorkerRequest } from "./p
 /** Longest a request may take before its worker is stopped (brief Part 6.3). */
 export const RUN_TIMEOUT_MS = 10_000;
 
+/**
+ * Longest the runtime may take to load (Pyodide + NumPy, several MB from the CDN) before the
+ * load counts as failed and Retry is offered. Separate from the run limit, so a slow network
+ * never makes the first run look like a runaway loop.
+ */
+export const LOAD_TIMEOUT_MS = 120_000;
+
+/** Output shown when the runtime cannot load. */
+export const LOAD_FAILED_MESSAGE = "The Python runtime failed to load. Try again.";
+
 /** Output shown when a request is stopped for taking too long. */
 export const STOPPED_MESSAGE = `Run stopped: it took longer than ${RUN_TIMEOUT_MS / 1000} seconds. The Python runtime restarts on the next run.`;
 
@@ -32,7 +42,8 @@ export interface WorkerLike {
 interface PendingRequest {
   kind: RequestKind;
   resolve: (outcome: WorkerOutcome) => void;
-  timer: ReturnType<typeof setTimeout>;
+  /** The run time limit; `null` while the runtime is still loading. */
+  timer: ReturnType<typeof setTimeout> | null;
 }
 
 /** Kinds of request the client sends to the worker. */
@@ -65,11 +76,15 @@ function failedOutcome(kind: RequestKind, error: string): WorkerOutcome {
 
 /**
  * Talks to the Python worker. The worker is created on the first request and handles one
- * request at a time. A request that passes {@link RUN_TIMEOUT_MS} is stopped: its worker is
- * terminated and replaced, so a runaway loop cannot freeze the page.
+ * request at a time. A request that runs longer than {@link RUN_TIMEOUT_MS} is stopped: its
+ * worker is terminated and replaced, so a runaway loop cannot freeze the page. The run limit
+ * starts only once the runtime is ready; loading has its own {@link LOAD_TIMEOUT_MS}. A failed
+ * load drops its worker, so the next request (Retry) starts a fresh one.
  */
 export class PythonClient {
   private worker: WorkerLike | null = null;
+  private ready = false;
+  private loadTimer: ReturnType<typeof setTimeout> | null = null;
   private nextId = 1;
   private readonly pending = new Map<number, PendingRequest>();
   private readonly createWorker: () => WorkerLike;
@@ -156,7 +171,7 @@ export class PythonClient {
     const id = this.nextId++;
 
     return new Promise((resolve) => {
-      const timer = setTimeout(() => this.stop(id), RUN_TIMEOUT_MS);
+      const timer = this.ready ? setTimeout(() => this.stop(id), RUN_TIMEOUT_MS) : null;
       this.pending.set(id, { kind, resolve, timer });
       worker.postMessage({ ...body, id });
     });
@@ -175,6 +190,8 @@ export class PythonClient {
     const worker = this.createWorker();
     worker.onmessage = (event) => this.handle(event.data);
     this.worker = worker;
+    this.ready = false;
+    this.loadTimer = setTimeout(() => this.failLoad(), LOAD_TIMEOUT_MS);
     return worker;
   }
 
@@ -186,6 +203,9 @@ export class PythonClient {
   private handle(message: WorkerMessage): void {
     switch (message.kind) {
       case "status":
+        if (message.stage === "ready") {
+          this.markReady();
+        }
         this.onStatus(
           message.stage === "ready"
             ? { state: "ready" }
@@ -193,7 +213,7 @@ export class PythonClient {
         );
         return;
       case "load-failed":
-        this.onStatus({ state: "failed" });
+        this.failLoad();
         return;
       case "result":
         this.finish(message.id, message.outcome);
@@ -212,7 +232,9 @@ export class PythonClient {
     if (!request) {
       return;
     }
-    clearTimeout(request.timer);
+    if (request.timer) {
+      clearTimeout(request.timer);
+    }
     this.pending.delete(id);
     request.resolve(outcome);
   }
@@ -232,9 +254,39 @@ export class PythonClient {
     this.onStatus({ state: "idle" });
   }
 
+  /** The runtime is loaded: stop the load limit and start the run limit of waiting requests. */
+  private markReady(): void {
+    this.ready = true;
+    this.clearLoadTimer();
+    for (const [id, request] of this.pending) {
+      request.timer ??= setTimeout(() => this.stop(id), RUN_TIMEOUT_MS);
+    }
+  }
+
+  /**
+   * The runtime could not load (an error, or {@link LOAD_TIMEOUT_MS} passed): resolves waiting
+   * requests with the failure, drops the worker so Retry gets a fresh one, and reports failed.
+   */
+  private failLoad(): void {
+    for (const id of [...this.pending.keys()]) {
+      this.finish(id, failedOutcome(this.pending.get(id)?.kind ?? "run", LOAD_FAILED_MESSAGE));
+    }
+    this.terminateWorker();
+    this.onStatus({ state: "failed" });
+  }
+
+  private clearLoadTimer(): void {
+    if (this.loadTimer) {
+      clearTimeout(this.loadTimer);
+      this.loadTimer = null;
+    }
+  }
+
   /** Terminates the current worker, if any, and forgets it. */
   private terminateWorker(): void {
     this.worker?.terminate();
     this.worker = null;
+    this.ready = false;
+    this.clearLoadTimer();
   }
 }
