@@ -8,8 +8,6 @@ export interface Lesson {
   id: string;
   title: string;
   hasExercise: boolean;
-  /** Code the Practice editor starts with. Lessons without it show no Practice yet. */
-  starterCode?: string;
 }
 
 /** Starter code of the Part 9 broadcasting scenario (lesson 07, Exercise 03). */
@@ -33,6 +31,13 @@ export const ARRAYS_MODULE = {
   title: "Arrays, Vectorization & Broadcasting",
   description:
     "Write real NumPy code, run it in your browser, and watch arrays and broadcasting happen.",
+  objectives: [
+    "Create NumPy arrays and read their shape, size and number of dimensions",
+    "Select elements, rows, columns and slices with indexing",
+    "Replace Python loops with vectorized, element-wise operations",
+    "Predict when two shapes broadcast, and fix them when they do not",
+    "Compute X * w + b, the core step of a linear model",
+  ],
   lessons: [
     { id: "01", title: "Introduction to Arrays", hasExercise: false },
     { id: "02", title: "Array Dimensions", hasExercise: false },
@@ -40,12 +45,7 @@ export const ARRAYS_MODULE = {
     { id: "04", title: "Array Indexing", hasExercise: false },
     { id: "05", title: "Introduction to Vectorization", hasExercise: false },
     { id: "06", title: "Element-wise Operations", hasExercise: true },
-    {
-      id: "07",
-      title: "Understanding Broadcasting",
-      hasExercise: true,
-      starterCode: BROADCASTING_STARTER,
-    },
+    { id: "07", title: "Understanding Broadcasting", hasExercise: true },
     { id: "08", title: "Practical Application: X * w + b", hasExercise: true },
   ] satisfies Lesson[],
 } as const;
@@ -60,3 +60,13 @@ export const ARRAYS_MODULE = {
 export function findLesson(lessonId: string): Lesson | undefined {
   return ARRAYS_MODULE.lessons.find((lesson) => lesson.id === lessonId);
 }
+
+/** Roadmap phases shown on the dashboard (brief Part 4.1). Only phase 0 has pages. */
+export const ROADMAP = [
+  { title: "Arrays, Vectorization & Broadcasting", available: true },
+  { title: "Machine Learning", available: false },
+  { title: "Deep Learning", available: false },
+  { title: "Transformers", available: false },
+  { title: "Reinforcement Learning", available: false },
+  { title: "Agentic AI", available: false },
+] as const;

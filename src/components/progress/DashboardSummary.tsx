@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 
-import { ARRAYS_MODULE } from "@/data/arrays-module";
+import { ProgressBar } from "@/components/ui/ProgressBar";
+import { ARRAYS_MODULE, findLesson } from "@/data/arrays-module";
+import { EXERCISES } from "@/data/exercises";
 import { totalsOf } from "@/features/progress/model";
 import { useProgress } from "@/features/progress/progress-context";
 
@@ -13,42 +15,52 @@ import { useProgress } from "@/features/progress/progress-context";
 export function DashboardSummary() {
   const { state, loaded } = useProgress();
   const totals = totalsOf(state);
-  const continueLesson = state.currentLesson ?? ARRAYS_MODULE.lessons[0].id;
+  const continueLesson = findLesson(state.currentLesson ?? "") ?? ARRAYS_MODULE.lessons[0];
   const value = (text: string | number) => (loaded ? text : "–");
 
   return (
-    <section className="mt-8 rounded-lg border border-zinc-200 p-5 dark:border-zinc-800">
-      <h2 className="text-lg font-medium">{ARRAYS_MODULE.title}</h2>
-      <dl className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+    <section className="card mt-8 p-6" aria-labelledby="module-title">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <dt className="text-subtle">Module</dt>
-          <dd className="font-medium">{value(`${totals.modulePercent}%`)}</dd>
+          <p className="font-mono text-xs text-subtle">Phase 0 · {ARRAYS_MODULE.lessons.length} lessons</p>
+          <h2 id="module-title" className="mt-1 text-lg font-semibold">
+            {ARRAYS_MODULE.title}
+          </h2>
+          <p className="mt-1 max-w-xl text-sm text-muted">{ARRAYS_MODULE.description}</p>
         </div>
+        <span className="text-2xl font-semibold tabular-nums">{value(`${totals.modulePercent}%`)}</span>
+      </div>
+
+      <div className="mt-4">
+        <ProgressBar percent={loaded ? totals.modulePercent : 0} label="Module completion" />
+      </div>
+
+      <dl className="mt-5 grid grid-cols-3 gap-4 text-sm">
         <div>
           <dt className="text-subtle">Lessons completed</dt>
-          <dd className="font-medium">{value(`${totals.completedLessons} / ${ARRAYS_MODULE.lessons.length}`)}</dd>
+          <dd className="mt-0.5 font-medium tabular-nums">
+            {value(`${totals.completedLessons} / ${ARRAYS_MODULE.lessons.length}`)}
+          </dd>
         </div>
         <div>
-          <dt className="text-subtle">XP</dt>
-          <dd className="font-medium">{value(totals.xp)}</dd>
+          <dt className="text-subtle">Total XP</dt>
+          <dd className="mt-0.5 font-medium tabular-nums">{value(totals.xp)}</dd>
         </div>
         <div>
           <dt className="text-subtle">Stars</dt>
-          <dd className="font-medium">{value(totals.stars)}</dd>
+          <dd className="mt-0.5 font-medium tabular-nums">{value(`${totals.stars} / ${EXERCISES.length * 3}`)}</dd>
         </div>
       </dl>
-      <div className="mt-4 flex gap-3">
-        <Link
-          href={`/learn/arrays/lesson/${continueLesson}`}
-          className="rounded-md bg-zinc-900 px-4 py-2 text-sm text-white dark:bg-zinc-100 dark:text-zinc-900"
-        >
+
+      <div className="mt-6 flex flex-wrap items-center gap-3">
+        <Link href={`/learn/arrays/lesson/${continueLesson.id}`} className="btn-primary">
           Continue learning
         </Link>
-        <Link
-          href="/learn/arrays"
-          className="rounded-md border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-700"
-        >
-          Open module
+        <span className="text-sm text-subtle">
+          {loaded ? `Lesson ${continueLesson.id}: ${continueLesson.title}` : null}
+        </span>
+        <Link href="/learn/arrays" className="btn ml-auto">
+          Module overview
         </Link>
       </div>
     </section>
