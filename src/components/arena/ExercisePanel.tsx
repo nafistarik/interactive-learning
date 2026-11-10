@@ -41,18 +41,18 @@ export function ExercisePanel({
   return (
     <section
       aria-label="Exercise"
-      className="grid gap-3 rounded-md border border-zinc-200 p-4 dark:border-zinc-800"
+      className="grid gap-3 card p-4"
     >
       <div>
         <h3 className="text-base font-medium">{exercise.title}</h3>
-        <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">{exercise.objective}</p>
+        <p className="mt-1 text-sm text-muted">{exercise.objective}</p>
       </div>
       <p className="text-sm">{exercise.problem}</p>
 
       {exercise.prelude ? (
         <div className="grid gap-1">
-          <p className="text-xs text-zinc-500">Fixed setup, runs before your code</p>
-          <pre className="overflow-x-auto rounded-md bg-zinc-100 p-3 font-mono text-sm dark:bg-zinc-900">
+          <p className="text-xs text-subtle">Fixed setup, runs before your code</p>
+          <pre className="overflow-x-auto rounded-md bg-surface-2 p-3 font-mono text-sm ">
             {exercise.prelude}
           </pre>
         </div>
@@ -62,18 +62,18 @@ export function ExercisePanel({
         <button type="button" onClick={toggleHint} className="underline">
           {showHint ? "Hide hint" : "Show hint"}
         </button>
-        <span className="text-zinc-500">Checks run: {attempts}</span>
+        <span className="text-subtle">Checks run: {attempts}</span>
       </div>
-      {showHint ? <p className="text-sm text-zinc-600 dark:text-zinc-400">{exercise.hint}</p> : null}
+      {showHint ? <p className="text-sm text-muted">{exercise.hint}</p> : null}
 
       {verdict ? (
         verdict.passed ? (
-          <p role="status" className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+          <p role="status" className="text-sm font-medium text-success">
             Passed. Your code gives the right results.
             {progress?.passed ? ` Stars: ${"★".repeat(progress.stars)}${"☆".repeat(3 - progress.stars)}. +100 XP.` : null}
           </p>
         ) : (
-          <div role="status" className="grid gap-1 text-sm text-red-600 dark:text-red-400">
+          <div role="status" className="grid gap-1 text-sm text-danger">
             <p className="font-medium">Not yet:</p>
             <ul className="list-disc pl-5">
               {verdict.problems.map((problem) => (

@@ -59,12 +59,12 @@ export function FrameVisualizer({
   return (
     <div className="grid gap-3">
       {frame.operationType === "not-visualised" ? (
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">{frame.note}</p>
+        <p className="text-sm text-muted">{frame.note}</p>
       ) : null}
 
       {operation ? (
         <>
-          <p className="text-xs text-zinc-500">
+          <p className="text-xs text-subtle">
             Operation {active.operation + 1} of {frame.operations.length} · stage {current + 1} of{" "}
             {stages.length}
           </p>

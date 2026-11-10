@@ -18,7 +18,7 @@ export function ExecutionTimeline({
   onSelect: (index: number) => void;
 }) {
   if (frames.length === 0) {
-    return <p className="text-sm text-zinc-500">Run the code to see its steps here.</p>;
+    return <p className="text-sm text-subtle">Run the code to see its steps here.</p>;
   }
 
   return (
@@ -33,16 +33,16 @@ export function ExecutionTimeline({
               onClick={() => onSelect(frame.index)}
               aria-current={isCurrent ? "step" : undefined}
               className={`flex w-full items-baseline gap-3 rounded-md px-3 py-1.5 text-left text-sm ${
-                isCurrent ? "bg-zinc-200 dark:bg-zinc-800" : "hover:bg-zinc-100 dark:hover:bg-zinc-900"
+                isCurrent ? "bg-accent-soft text-fg" : "hover:bg-surface-2"
               }`}
             >
-              <span className="w-6 text-zinc-500">{frame.index + 1}</span>
-              <span className="w-24 text-xs text-zinc-500">
+              <span className="w-6 text-subtle">{frame.index + 1}</span>
+              <span className="w-24 text-xs text-subtle">
                 lines {frame.startLine}
                 {frame.endLine !== frame.startLine ? `–${frame.endLine}` : ""}
               </span>
               <span className="flex-1 truncate font-mono">{frame.source.split("\n")[0]}</span>
-              <span className={frame.status === "error" ? "text-red-600 dark:text-red-400" : "text-zinc-500"}>
+              <span className={frame.status === "error" ? "text-danger" : "text-subtle"}>
                 {label}
               </span>
             </button>

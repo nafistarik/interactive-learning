@@ -9,9 +9,9 @@ const MAX_LAYERS = 4;
 export type ArrayTone = "input" | "weight" | "result";
 
 const TONE_CLASSES: Record<ArrayTone, string> = {
-  input: "border-sky-400 bg-sky-50 dark:bg-sky-950/40",
-  weight: "border-amber-400 bg-amber-50 dark:bg-amber-950/40",
-  result: "border-emerald-400 bg-emerald-50 dark:bg-emerald-950/40",
+  input: "border-tone-input bg-tone-input-soft",
+  weight: "border-tone-weight bg-tone-weight-soft",
+  result: "border-tone-result bg-tone-result-soft",
 };
 
 /**
@@ -56,10 +56,10 @@ export function ArrayGrid({
     <figure className={`rounded-md border p-3 ${TONE_CLASSES[tone]}`}>
       <figcaption className="mb-2 flex flex-wrap items-baseline gap-x-3 text-sm">
         <span className="font-medium">{label}</span>
-        <span className="font-mono text-zinc-600 dark:text-zinc-400">
+        <span className="font-mono text-muted">
           shape {formatShape(snapshot.shape)}
         </span>
-        <span className="text-zinc-500">
+        <span className="text-subtle">
           ndim {snapshot.shape.length} · size {size} · {snapshot.dtype}
         </span>
       </figcaption>
@@ -68,14 +68,14 @@ export function ArrayGrid({
         {shownLayers.map((rows, layer) => (
           <div key={layer} className="grid gap-1 font-mono text-sm">
             {shownLayers.length > 1 ? (
-              <span className="text-xs text-zinc-500">layer {layer}</span>
+              <span className="text-xs text-subtle">layer {layer}</span>
             ) : null}
             {rows.slice(0, MAX_CELLS).map((row, rowIndex) => (
               <div key={rowIndex} className="flex gap-1">
                 {row.slice(0, MAX_CELLS).map((cell, cellIndex) => (
                   <span
                     key={cellIndex}
-                    className="min-w-9 rounded border border-zinc-300 bg-white px-2 py-1 text-center dark:border-zinc-700 dark:bg-zinc-900"
+                    className="min-w-9 rounded border border-line-strong bg-surface px-2 py-1 text-center tabular-nums"
                   >
                     {String(cell)}
                   </span>
@@ -87,7 +87,7 @@ export function ArrayGrid({
       </div>
 
       {partial ? (
-        <p className="mt-2 text-xs text-zinc-500">
+        <p className="mt-2 text-xs text-subtle">
           Showing part of a larger array (up to 8 × 8 cells and 4 layers).
         </p>
       ) : null}

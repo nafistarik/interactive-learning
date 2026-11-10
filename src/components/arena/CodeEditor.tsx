@@ -3,6 +3,8 @@
 import Editor, { type OnMount } from "@monaco-editor/react";
 import { useEffect, useRef, useState } from "react";
 
+import { useTheme } from "@/features/theme/theme";
+
 /** A range of editor lines, both ends inclusive, as numbered in the editor. */
 export interface LineRange {
   startLine: number;
@@ -42,6 +44,7 @@ export default function CodeEditor({
   const monacoRef = useRef<Parameters<OnMount>[1] | null>(null);
   const decorationIds = useRef<string[]>([]);
   const [mounted, setMounted] = useState(false);
+  const theme = useTheme();
 
   const handleMount: OnMount = (editor, monaco) => {
     editorRef.current = editor;
@@ -94,6 +97,7 @@ export default function CodeEditor({
     <Editor
       height="320px"
       language="python"
+      theme={theme === "dark" ? "vs-dark" : "light"}
       value={value}
       onChange={(next) => onChange(next ?? "")}
       onMount={handleMount}

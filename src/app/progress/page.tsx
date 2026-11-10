@@ -9,7 +9,7 @@ import { ProgressView } from "@/components/progress/ProgressView";
 export default function ProgressPage() {
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
-      <nav className="text-sm text-zinc-500">
+      <nav className="text-sm text-subtle">
         <Link href="/" className="underline">
           Dashboard
         </Link>{" "}

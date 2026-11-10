@@ -13,12 +13,12 @@ const INSPECTOR_VALUES = 8;
  */
 export function VariableInspector({ variables }: { variables: VariableSnapshot[] }) {
   if (variables.length === 0) {
-    return <p className="text-sm text-zinc-500">No variables yet.</p>;
+    return <p className="text-sm text-subtle">No variables yet.</p>;
   }
 
   return (
     <table className="w-full text-left text-sm">
-      <thead className="text-zinc-500">
+      <thead className="text-subtle">
         <tr>
           <th className="whitespace-nowrap py-1 font-medium">name</th>
           <th className="whitespace-nowrap py-1 font-medium">type</th>
@@ -35,7 +35,7 @@ export function VariableInspector({ variables }: { variables: VariableSnapshot[]
           const shownValues = values.slice(0, INSPECTOR_VALUES);
           const cut = array ? array.truncated || values.length > INSPECTOR_VALUES : false;
           return (
-            <tr key={variable.name} className="border-t border-zinc-200 dark:border-zinc-800">
+            <tr key={variable.name} className="border-t border-line">
               <td className="whitespace-nowrap py-1 font-mono">{variable.name}</td>
               <td className="whitespace-nowrap py-1 font-mono">{variable.type}</td>
               <td className="whitespace-nowrap py-1 font-mono">{array ? formatShape(array.shape) : "-"}</td>

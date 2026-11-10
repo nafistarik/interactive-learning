@@ -55,7 +55,7 @@ export function BroadcastView({
       {phase === "align" ? (
         <div className="grid gap-3">
           <table className="w-full text-sm">
-            <thead className="text-left text-zinc-500">
+            <thead className="text-left text-subtle">
               <tr>
                 <th className="py-1 font-medium">axis (from right)</th>
                 <th className="py-1 font-medium">left</th>
@@ -67,7 +67,7 @@ export function BroadcastView({
               {analysis.checks.map((check) => (
                 <tr
                   key={check.fromRight}
-                  className={check.ok ? "" : "text-red-600 dark:text-red-400"}
+                  className={check.ok ? "" : "text-danger"}
                 >
                   <td className="py-1 font-mono">{check.fromRight}</td>
                   <td className="py-1 font-mono">{check.left ?? "missing"}</td>
@@ -77,13 +77,13 @@ export function BroadcastView({
               ))}
             </tbody>
           </table>
-          <p className="text-sm text-zinc-600 dark:text-zinc-400">{RULE}</p>
+          <p className="text-sm text-muted">{RULE}</p>
           {analysis.compatible && analysis.resultShape ? (
-            <p className="text-sm text-emerald-700 dark:text-emerald-400">
+            <p className="text-sm text-success">
               Compatible. The result has shape {formatShape(analysis.resultShape)}.
             </p>
           ) : analysis.failedAt ? (
-            <p className="text-sm text-red-600 dark:text-red-400">
+            <p className="text-sm text-danger">
               Not compatible at axis {analysis.failedAt.fromRight} from the right: {analysis.failedAt.left} and{" "}
               {analysis.failedAt.right} are different and neither is 1, so the shapes cannot be
               broadcast.
@@ -106,14 +106,14 @@ export function BroadcastView({
               tone="weight"
             />
           ) : analysis.resultShape ? (
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-subtle">
               The right operand is too large to stretch here; only its first 64 values were recorded.
             </p>
           ) : null}
           {step.result ? (
             <ArrayGrid label="result" snapshot={step.result} tone="result" />
           ) : (
-            <p className="text-sm text-red-600 dark:text-red-400">
+            <p className="text-sm text-danger">
               No result: this operation stopped here. {failureMessage ?? ""}
             </p>
           )}

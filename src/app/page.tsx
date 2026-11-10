@@ -20,7 +20,7 @@ export default function DashboardPage() {
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
       <h1 className="text-3xl font-semibold tracking-tight">Interactive Learning</h1>
-      <p className="mt-2 text-zinc-600 dark:text-zinc-400">
+      <p className="mt-2 text-muted">
         Learn by writing real Python and watching the data change.
       </p>
 
@@ -28,11 +28,11 @@ export default function DashboardPage() {
 
       <section className="mt-10">
         <h2 className="text-lg font-medium">Roadmap</h2>
-        <ul className="mt-3 divide-y divide-zinc-200 dark:divide-zinc-800">
+        <ul className="mt-3 divide-y divide-line">
           {ROADMAP.map((phase) => (
             <li key={phase.title} className="flex justify-between py-3 text-sm">
               <span>{phase.title}</span>
-              <span className="text-zinc-500">{phase.available ? "Available" : "Coming soon"}</span>
+              <span className="text-subtle">{phase.available ? "Available" : "Coming soon"}</span>
             </li>
           ))}
         </ul>

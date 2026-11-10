@@ -21,19 +21,19 @@ export function DashboardSummary() {
       <h2 className="text-lg font-medium">{ARRAYS_MODULE.title}</h2>
       <dl className="mt-3 grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
         <div>
-          <dt className="text-zinc-500">Module</dt>
+          <dt className="text-subtle">Module</dt>
           <dd className="font-medium">{value(`${totals.modulePercent}%`)}</dd>
         </div>
         <div>
-          <dt className="text-zinc-500">Lessons completed</dt>
+          <dt className="text-subtle">Lessons completed</dt>
           <dd className="font-medium">{value(`${totals.completedLessons} / ${ARRAYS_MODULE.lessons.length}`)}</dd>
         </div>
         <div>
-          <dt className="text-zinc-500">XP</dt>
+          <dt className="text-subtle">XP</dt>
           <dd className="font-medium">{value(totals.xp)}</dd>
         </div>
         <div>
-          <dt className="text-zinc-500">Stars</dt>
+          <dt className="text-subtle">Stars</dt>
           <dd className="font-medium">{value(totals.stars)}</dd>
         </div>
       </dl>

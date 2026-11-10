@@ -25,35 +25,35 @@ export function ProgressView() {
   const totals = totalsOf(state);
 
   if (!loaded) {
-    return <p className="mt-6 text-zinc-500">Loading your progress…</p>;
+    return <p className="mt-6 text-subtle">Loading your progress…</p>;
   }
 
   return (
     <div className="mt-6 grid gap-8">
       <dl className="grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
         <div>
-          <dt className="text-zinc-500">XP</dt>
+          <dt className="text-subtle">XP</dt>
           <dd className="text-lg font-medium">{totals.xp}</dd>
         </div>
         <div>
-          <dt className="text-zinc-500">Stars</dt>
+          <dt className="text-subtle">Stars</dt>
           <dd className="text-lg font-medium">{totals.stars}</dd>
         </div>
         <div>
-          <dt className="text-zinc-500">Lessons completed</dt>
+          <dt className="text-subtle">Lessons completed</dt>
           <dd className="text-lg font-medium">
             {totals.completedLessons} / {ARRAYS_MODULE.lessons.length}
           </dd>
         </div>
         <div>
-          <dt className="text-zinc-500">Module</dt>
+          <dt className="text-subtle">Module</dt>
           <dd className="text-lg font-medium">{totals.modulePercent}%</dd>
         </div>
       </dl>
 
       <section className="grid gap-2">
         <h2 className="text-base font-medium">Lessons</h2>
-        <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
+        <ul className="divide-y divide-line">
           {ARRAYS_MODULE.lessons.map((lesson) => {
             const exercise = EXERCISES.find((item) => item.lessonId === lesson.id);
             return (
@@ -61,7 +61,7 @@ export function ProgressView() {
                 <Link href={`/learn/arrays/lesson/${lesson.id}`} className="hover:underline">
                   {lesson.id}. {lesson.title}
                 </Link>
-                <span className="text-zinc-500">
+                <span className="text-subtle">
                   {STATUS_TEXT[lessonStatusOf(state, lesson.id, exercise?.id)]}
                 </span>
               </li>
@@ -72,13 +72,13 @@ export function ProgressView() {
 
       <section className="grid gap-2">
         <h2 className="text-base font-medium">Exercises</h2>
-        <ul className="divide-y divide-zinc-200 dark:divide-zinc-800">
+        <ul className="divide-y divide-line">
           {EXERCISES.map((exercise) => {
             const progress = state.exercises[exercise.id];
             return (
               <li key={exercise.id} className="flex justify-between py-2 text-sm">
                 <span>{exercise.title}</span>
-                <span className="text-zinc-500">
+                <span className="text-subtle">
                   {progress?.passed
                     ? `Passed · ${"★".repeat(progress.stars)}${"☆".repeat(3 - progress.stars)}`
                     : progress
@@ -95,7 +95,7 @@ export function ProgressView() {
         <button
           type="button"
           onClick={() => dialogRef.current?.showModal()}
-          className="rounded-md border border-red-400 px-3 py-1.5 text-sm text-red-600 dark:text-red-400"
+          className="btn border-danger text-danger"
         >
           Reset progress
         </button>
@@ -104,12 +104,12 @@ export function ProgressView() {
       <dialog
         ref={dialogRef}
         aria-labelledby="reset-title"
-        className="w-full max-w-md rounded-lg p-6 backdrop:bg-black/50 dark:bg-zinc-900"
+        className="m-auto w-full max-w-md rounded-lg border border-line bg-surface p-6 text-fg backdrop:bg-black/50"
       >
         <h2 id="reset-title" className="text-lg font-medium">
           Reset all progress?
         </h2>
-        <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+        <p className="mt-2 text-sm text-muted">
           XP, stars, completed lessons and exercise results are deleted from this browser. This
           cannot be undone.
         </p>
@@ -117,7 +117,7 @@ export function ProgressView() {
           <button
             type="button"
             onClick={() => dialogRef.current?.close()}
-            className="rounded-md border border-zinc-300 px-3 py-1.5 dark:border-zinc-700"
+            className="btn"
           >
             Cancel
           </button>
@@ -127,7 +127,7 @@ export function ProgressView() {
               reset();
               dialogRef.current?.close();
             }}
-            className="rounded-md bg-red-600 px-3 py-1.5 text-white"
+            className="btn-danger"
           >
             Reset progress
           </button>

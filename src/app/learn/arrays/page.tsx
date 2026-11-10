@@ -11,14 +11,14 @@ import { ARRAYS_MODULE } from "@/data/arrays-module";
 export default function ArraysModulePage() {
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
-      <nav className="text-sm text-zinc-500">
+      <nav className="text-sm text-subtle">
         <Link href="/" className="underline">
           Dashboard
         </Link>{" "}
         / {ARRAYS_MODULE.title}
       </nav>
       <h1 className="mt-4 text-3xl font-semibold tracking-tight">{ARRAYS_MODULE.title}</h1>
-      <p className="mt-2 text-zinc-600 dark:text-zinc-400">{ARRAYS_MODULE.description}</p>
+      <p className="mt-2 text-muted">{ARRAYS_MODULE.description}</p>
 
       <LessonList
         lessons={ARRAYS_MODULE.lessons.map((lesson) => ({

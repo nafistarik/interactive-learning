@@ -22,7 +22,7 @@ const SPEEDS = [0.5, 1, 2] as const;
 
 const CodeEditor = dynamic(() => import("./CodeEditor"), {
   ssr: false,
-  loading: () => <p className="p-4 text-sm text-zinc-500">Loading editor…</p>,
+  loading: () => <p className="p-4 text-sm text-subtle">Loading editor…</p>,
 });
 
 /**
@@ -216,7 +216,7 @@ export default function PythonArena({
           type="button"
           onClick={runAll}
           disabled={running || failed}
-          className="rounded-md bg-zinc-900 px-3 py-1.5 text-sm text-white disabled:opacity-40 dark:bg-zinc-100 dark:text-zinc-900"
+          className="btn-primary"
         >
           Run all
         </button>
@@ -224,7 +224,7 @@ export default function PythonArena({
           type="button"
           onClick={() => setIndex((current) => Math.max(current - 1, 0))}
           disabled={running || frames.length === 0 || index === 0}
-          className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-zinc-700"
+          className="btn"
         >
           Step back
         </button>
@@ -232,7 +232,7 @@ export default function PythonArena({
           type="button"
           onClick={stepForward}
           disabled={running || failed || recordingFailed || (recording !== null && atLast)}
-          className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-zinc-700"
+          className="btn"
         >
           Step forward
         </button>
@@ -240,7 +240,7 @@ export default function PythonArena({
           type="button"
           onClick={resetExecution}
           disabled={recording === null}
-          className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-zinc-700"
+          className="btn"
         >
           Reset execution
         </button>
@@ -249,7 +249,7 @@ export default function PythonArena({
             type="button"
             onClick={checkSolution}
             disabled={checking || running || failed}
-            className="rounded-md bg-emerald-600 px-3 py-1.5 text-sm text-white disabled:opacity-40"
+            className="btn-success"
           >
             Check solution
           </button>
@@ -257,7 +257,7 @@ export default function PythonArena({
         <button
           type="button"
           onClick={() => changeCode(starterCode)}
-          className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm dark:border-zinc-700"
+          className="btn"
         >
           Reset code
         </button>
@@ -265,7 +265,7 @@ export default function PythonArena({
           type="button"
           onClick={() => setPaused((value) => !value)}
           disabled={!animated}
-          className="rounded-md border border-zinc-300 px-3 py-1.5 text-sm disabled:opacity-40 dark:border-zinc-700"
+          className="btn"
         >
           {paused ? "Resume" : "Pause"}
         </button>
@@ -274,7 +274,7 @@ export default function PythonArena({
           <select
             value={speed}
             onChange={(event) => setSpeed(Number(event.target.value) as (typeof SPEEDS)[number])}
-            className="rounded-md border border-zinc-300 bg-transparent px-2 py-1 dark:border-zinc-700"
+            className="rounded-md border border-line-strong bg-surface px-2 py-1"
           >
             {SPEEDS.map((option) => (
               <option key={option} value={option}>
@@ -285,7 +285,7 @@ export default function PythonArena({
         </label>
       </div>
 
-      <p className="text-sm text-zinc-600 dark:text-zinc-400" role="status">
+      <p className="text-sm text-muted" role="status">
         {describeStatus(runtime)}
         {failed ? (
           <button type="button" onClick={() => clientRef.current?.warm()} className="ml-3 underline">
@@ -315,7 +315,7 @@ export default function PythonArena({
 
         <div className="grid content-start gap-3">
           {frame ? (
-            <p className="text-sm text-zinc-600 dark:text-zinc-400">
+            <p className="text-sm text-muted">
               Step {index + 1} of {frames.length} · lines {frame.startLine}
               {frame.endLine !== frame.startLine ? `–${frame.endLine}` : ""} · {frame.operationType}
             </p>
@@ -323,10 +323,10 @@ export default function PythonArena({
           {frame ? (
             <FrameVisualizer key={`${runId}-${frame.index}`} frame={frame} paused={paused} speed={speed} />
           ) : (
-            <p className="text-sm text-zinc-500">Run the code to see the arrays and the broadcasting here.</p>
+            <p className="text-sm text-subtle">Run the code to see the arrays and the broadcasting here.</p>
           )}
           {fixDefinitions.length > 0 ? (
-            <div role="status" className="grid gap-1 rounded-md border border-amber-400 bg-amber-50 p-3 text-sm dark:bg-amber-950/40">
+            <div role="status" className="grid gap-1 rounded-md border border-warn bg-warn-soft p-3 text-sm">
               <p className="font-medium">Fix the operand that does not match:</p>
               {fixDefinitions.map((definition) => (
                 <p key={definition.name}>
@@ -341,7 +341,7 @@ export default function PythonArena({
           ) : null}
           <pre
             aria-live="polite"
-            className="min-h-16 whitespace-pre-wrap rounded-md border border-zinc-200 p-3 text-sm dark:border-zinc-800"
+            className="min-h-16 whitespace-pre-wrap rounded-md border border-line bg-surface p-3 font-mono text-sm"
           >
             {running
               ? "Running…"

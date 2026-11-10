@@ -38,7 +38,7 @@ export default async function LessonPage({
 
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-10">
-      <nav className="text-sm text-zinc-500">
+      <nav className="text-sm text-subtle">
         <Link href="/" className="underline">
           Dashboard
         </Link>{" "}
@@ -55,7 +55,7 @@ export default async function LessonPage({
         {practiceStarter ? (
           <PythonArena starterCode={practiceStarter} exercise={exercise} />
         ) : (
-          <p className="text-zinc-600 dark:text-zinc-400">
+          <p className="text-muted">
             Practice for this lesson comes with its lesson content.
           </p>
         )}

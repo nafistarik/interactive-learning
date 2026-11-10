@@ -29,7 +29,7 @@ export function LessonList({ lessons }: { lessons: LessonRow[] }) {
   const { state, loaded } = useProgress();
 
   return (
-    <ol className="mt-8 divide-y divide-zinc-200 dark:divide-zinc-800">
+    <ol className="mt-8 divide-y divide-line">
       {lessons.map((lesson) => {
         const status = lessonStatusOf(state, lesson.id, lesson.exerciseId);
         return (
@@ -41,7 +41,7 @@ export function LessonList({ lessons }: { lessons: LessonRow[] }) {
               <span>
                 {lesson.id}. {lesson.title}
               </span>
-              <span className="flex gap-3 text-xs text-zinc-500">
+              <span className="flex gap-3 text-xs text-subtle">
                 {lesson.hasExercise ? <span>Exercise</span> : null}
                 <span>{loaded ? STATUS_TEXT[status] : "…"}</span>
               </span>
