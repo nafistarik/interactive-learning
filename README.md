@@ -5,7 +5,8 @@ watch arrays, element-wise operations and broadcasting happen, driven by the act
 results. No backend: Python runs in a Web Worker with Pyodide (pinned `0.29.4`, from the
 jsDelivr CDN). Progress is saved in LocalStorage (`vlp:progress:v1`).
 
-The brief is in [`docs/mvp/`](docs/mvp/README.md).
+The MVP 1 brief is in [`docs/mvp/`](docs/mvp/README.md); the product roadmap, the
+architecture and the release plan are in [`docs/roadmap/`](docs/roadmap/README.md).
 
 ## Run it
 

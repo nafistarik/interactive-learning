@@ -1,5 +1,8 @@
 # MVP 1 — Arrays, Vectorization & Broadcasting
 
+**Status:** shipped on 2026-11-11 (release R1.0). What comes next is in
+[`docs/roadmap/`](../roadmap/README.md).
+
 The MVP brief is split into one file per part so it can be worked through one part at a
 time. Each file is a verbatim section of the full brief. Read them in number order.
 
