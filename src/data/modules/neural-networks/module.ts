@@ -16,7 +16,7 @@ export const NEURAL_NETWORKS_MODULE: ModuleDef = {
     "Run a two-layer forward pass and follow the shapes from input to output",
     "Show that two layers without an activation collapse into one",
   ],
-  available: false,
+  available: true,
   lessons: [
     { id: "01", title: "The Neuron" },
     { id: "02", title: "Activation Functions" },

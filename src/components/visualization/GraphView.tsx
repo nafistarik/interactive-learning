@@ -46,9 +46,10 @@ export function GraphView({ name, graph }: { name: string; graph: AutogradGraph 
             .map((node) => `${node.label || "value"} data ${show(node.data)} grad ${show(node.grad)}`)
             .join("; ")}`}
         >
-          {graph.edges.map(([input, output]) => (
+          {graph.edges.map(([input, output], edge) => (
             <line
-              key={`${input}-${output}`}
+              // A value used twice by one op (z * z) gives two identical edges.
+              key={edge}
               x1={x(input) + BOX_W}
               y1={y(input) + BOX_H / 2}
               x2={x(output)}

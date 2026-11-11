@@ -15,7 +15,7 @@ export const BACKPROPAGATION_MODULE: ModuleDef = {
     "Check an analytic gradient against central differences with a relative error",
     "Write the backward pass of a dense layer and ReLU: dW, db, dX and the ReLU mask",
   ],
-  available: false,
+  available: true,
   lessons: [
     { id: "01", title: "The Chain Rule" },
     { id: "02", title: "Gradients by Hand" },

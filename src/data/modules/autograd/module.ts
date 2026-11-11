@@ -16,7 +16,7 @@ export const AUTOGRAD_MODULE: ModuleDef = {
     "Add tanh and compute every gradient of a neuron with one backward() call",
     "Check autograd gradients against the chain rule and a numeric check, then take a gradient-descent step",
   ],
-  available: false,
+  available: true,
   lessons: [
     { id: "01", title: "Values that Remember" },
     { id: "02", title: "Local Gradients" },

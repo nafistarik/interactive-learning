@@ -16,7 +16,7 @@ export const TRAINING_NETWORKS_MODULE: ModuleDef = {
     "Fit a curve no straight line can follow and watch the prediction bend",
     "Tell underfitting from overfitting by comparing training and test loss",
   ],
-  available: false,
+  available: true,
   lessons: [
     { id: "01", title: "From Backward Pass to Training Loop" },
     { id: "02", title: "Initialization and Learning Rate" },

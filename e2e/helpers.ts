@@ -1,7 +1,7 @@
 import { expect, type Page } from "@playwright/test";
 
-/** Pyodide and NumPy come from the CDN on first use; allow for a slow network. */
-export const PYTHON_READY_MS = 90_000;
+/** Pyodide, NumPy and (for some lessons) scikit-learn come from the CDN on first use; allow for a slow network. */
+export const PYTHON_READY_MS = 150_000;
 
 /**
  * Opens a lesson's Practice view and waits until Python and NumPy are ready.
