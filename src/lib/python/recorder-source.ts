@@ -310,6 +310,10 @@ def evaluate(node, namespace, steps):
         left = evaluate(node.left, namespace, steps)
         right = evaluate(node.comparators[0], namespace, steps)
         return binary("binary", symbol, function, left, right, node.left, node.comparators[0], steps)
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, (ast.USub, ast.UAdd)):
+        # -(X @ w + b): record the operations inside; the sign itself is not a drawn step.
+        value = evaluate(node.operand, namespace, steps)
+        return -value if isinstance(node.op, ast.USub) else +value
     if isinstance(node, ast.Attribute) and node.attr == "T":
         base = evaluate(node.value, namespace, steps)
         if not isinstance(base, np.ndarray):

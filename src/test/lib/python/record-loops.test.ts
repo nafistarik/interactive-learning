@@ -85,6 +85,14 @@ describe("recording loops and ufuncs", () => {
     expect(frame?.loop?.total).toBe(3);
   });
 
+  it("records operations under a unary minus, including a failing @", () => {
+    const ok = frames("import numpy as np\nX = np.ones((2, 2))\nw = np.ones(2)\np = 1 / (1 + np.exp(-(X @ w)))").at(-1);
+    expect(ok?.operations.map((step) => step.kind)).toEqual(["matmul", "ufunc", "binary", "binary"]);
+    const bad = frames("import numpy as np\nX = np.ones((2, 2))\nw = np.ones(3)\np = 1 / (1 + np.exp(-(X @ w)))").at(-1);
+    expect(bad?.status).toBe("error");
+    expect(bad?.operations.map((step) => step.kind)).toEqual(["matmul"]);
+  });
+
   it("records np.exp as a ufunc step inside the sigmoid", () => {
     const frame = frames("import numpy as np\nz = np.array([-1.0, 0.0, 2.0])\np = 1 / (1 + np.exp(-z))").at(-1);
     expect(frame?.operations.map((step) => step.kind)).toEqual(["ufunc", "binary", "binary"]);
