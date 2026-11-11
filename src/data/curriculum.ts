@@ -13,6 +13,10 @@ import { LINEAR_REGRESSION_MODULE } from "./modules/linear-regression/module";
 import { GRADIENT_DESCENT_MODULE } from "./modules/gradient-descent/module";
 import { LOGISTIC_REGRESSION_MODULE } from "./modules/logistic-regression/module";
 import { EVALUATION_MODULE } from "./modules/evaluation/module";
+import { NEURAL_NETWORKS_MODULE } from "./modules/neural-networks/module";
+import { BACKPROPAGATION_MODULE } from "./modules/backpropagation/module";
+import { AUTOGRAD_MODULE } from "./modules/autograd/module";
+import { TRAINING_NETWORKS_MODULE } from "./modules/training-networks/module";
 
 /** Every module, in learning order, including ones still in development. */
 export const MODULES: readonly ModuleDef[] = [
@@ -24,6 +28,10 @@ export const MODULES: readonly ModuleDef[] = [
   GRADIENT_DESCENT_MODULE,
   LOGISTIC_REGRESSION_MODULE,
   EVALUATION_MODULE,
+  NEURAL_NETWORKS_MODULE,
+  BACKPROPAGATION_MODULE,
+  AUTOGRAD_MODULE,
+  TRAINING_NETWORKS_MODULE,
 ];
 
 /** The roadmap. Only phase 0 has modules so far. */
@@ -34,7 +42,11 @@ export const PHASES: readonly Phase[] = [
     title: "Machine Learning in NumPy",
     modules: ["linear-regression", "gradient-descent", "logistic-regression", "evaluation"],
   },
-  { number: 2, title: "Deep Learning", modules: [] },
+  {
+    number: 2,
+    title: "Deep Learning in NumPy",
+    modules: ["neural-networks", "backpropagation", "autograd", "training-networks"],
+  },
   { number: 3, title: "Transformers", modules: [] },
   { number: 4, title: "Reinforcement Learning", modules: [] },
   { number: 5, title: "Agentic AI", modules: [] },
