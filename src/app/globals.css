@@ -110,6 +110,16 @@ body {
   outline-offset: 2px;
 }
 
+@layer base {
+  /*
+   * A grid's implicit column grows to its widest child (a long code line), which widens the
+   * page on phones. Default every grid to one shrinkable column; grid-cols-* utilities win.
+   */
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 @layer components {
   .card {
     border: 1px solid var(--line);
@@ -176,6 +186,8 @@ body {
     border: 1px solid var(--line);
     border-radius: 4px;
     padding: 0.05em 0.3em;
+    /* Long expressions wrap instead of widening the page on phones. */
+    overflow-wrap: anywhere;
   }
 }
 

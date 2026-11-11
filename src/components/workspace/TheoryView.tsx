@@ -73,9 +73,9 @@ export function TheoryView({
   const { state, passKnowledgeCheck } = useProgress();
 
   return (
-    <article className="grid max-w-3xl gap-10">
+    <article className="grid max-w-3xl grid-cols-1 gap-10">
       {content.sections.map((section) => (
-        <section key={section.title} className="grid gap-4">
+        <section key={section.title} className="grid grid-cols-1 gap-4">
           <h2 className="text-lg font-semibold tracking-tight">{section.title}</h2>
           {section.blocks.map((block, index) => (
             <Block key={index} block={block} />

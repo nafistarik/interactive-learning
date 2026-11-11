@@ -26,7 +26,7 @@ export function DemoFrame({
   children: ReactNode;
 }) {
   return (
-    <section aria-label={`Interactive demo: ${title}`} className="card grid gap-4 p-4">
+    <section aria-label={`Interactive demo: ${title}`} className="card grid grid-cols-1 gap-4 p-4">
       <div className="flex items-baseline justify-between gap-3">
         <h3 className="text-sm font-semibold">{title}</h3>
         <span className="text-xs text-subtle">Interactive · runs real NumPy in your browser</span>
