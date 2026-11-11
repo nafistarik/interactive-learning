@@ -11,7 +11,7 @@ the full curriculum is written down (see [open decisions](04-open-decisions.md))
 | R2 | Phase 0 complete: NumPy for ML | New operation kinds (`@`, reductions, reshape, calls), multi-module content | Done 2026-11-11 ([brief](../r2/README.md)) |
 | R3 | Phase 1: ML foundations in NumPy | Loop-aware recording, charts from real data | Done 2026-11-11 ([brief](../r3/README.md)) |
 | R4 | Accounts and sync (only if learners return) | Thin backend, progress merge | |
-| R5 | Phase 2: Deep learning foundations | NumPy autograd in the browser; PyTorch decision | |
+| R5 | Phase 2: Deep learning foundations | NumPy autograd in the browser; PyTorch decision | Done 2026-11-12 ([brief](../r5/README.md)) |
 | Later | Transformers, RL, Agentic AI, AI hints, desktop | | |
 
 ### Does a release need a backend?
@@ -121,6 +121,12 @@ Build only if R1.1–R3 show learners return across days or devices.
 - The app stays static-exportable; the backend is a separate small service.
 
 ## R5 — Phase 2: Deep learning foundations
+
+**Done 2026-11-12.** Modules 2.1 Neurons and Layers, 2.2 Backpropagation, 2.3 Build Your
+Own Autograd and 2.4 Training a Neural Network are open (4 lessons, 3 exercises each), all
+in NumPy in the browser. Autograd values are recorded as computation graphs with their
+gradients. PyTorch stays out (decision 5). Also fixed: no lesson scrolls sideways on a phone
+(an e2e test now checks all of them).
 
 - Neural networks in NumPy: forward pass, backpropagation, a tiny autograd the learner
   builds (micrograd-style), training an MLP — all in the browser.

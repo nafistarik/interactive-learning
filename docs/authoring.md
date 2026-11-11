@@ -85,6 +85,11 @@ backticks for inline code; no emoji, no hype, no invented numbers.
   (or exercise) and assign `pred` in the loop to plot the fit moving. Use `*` or
   `np.square` instead of `**` where you want the step animated.
 - Importing `sklearn`, `scipy` or `pandas` loads them on first use (a few seconds).
+- **Autograd values** (R5): an object with `data`, `grad` and `_prev` (plus optional `_op`
+  and `label`) is drawn as a computation graph after every statement. Arithmetic on such
+  objects is not an array step, so end a playground with a recorded NumPy line.
+- An operation that should fail on purpose (to show the explanation) may sit inside a
+  larger expression, including under a unary minus.
 
 ## 3. An exercise
 

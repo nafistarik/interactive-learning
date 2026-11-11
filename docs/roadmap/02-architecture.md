@@ -64,6 +64,7 @@ Today `OperationStep.operator` is `"+" | "-" | "*" | "/"`. Each release adds ope
 | `reshape` / `transpose` (`.T`) | R2 ✓ | input, requested shape, result | element traced from input to result |
 | comparisons (`>`, `==`, …) as `binary` | R2 ✓ | as binary, boolean result | element-wise view |
 | `ufunc` (`np.exp`, `log`, `sqrt`, `abs`, `square`, `tanh`, `sign`) | R3 ✓ | input, result | per-element function |
+| autograd graphs (values with `data`, `grad`, `_prev`) | R5 ✓ | ≤ 40 nodes with label, data, grad, op | computation graph, grads after `backward()` |
 | loop frames (`for`/`while`) | R3 ✓ | per-iteration snapshots of the names the body assigns, ≤ 300 kept, evenly sampled | iteration scrubber, line charts, fit chart |
 
 A visualization registry maps kind → component; an unknown kind falls back to the

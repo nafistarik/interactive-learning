@@ -3,13 +3,15 @@
 Learners write real Python in the browser, step through it statement by statement, and
 watch arrays, broadcasting, matrix products, reductions, reshapes and whole training loops
 happen, driven by the actual NumPy results. Phase 0 "NumPy for ML" (0.1 Arrays, 0.2 Matrix
-multiplication, 0.3 Reductions, 0.4 Reshape & masks) and Phase 1 "Machine Learning in NumPy"
-(1.1 Linear regression, 1.2 Gradient descent, 1.3 Logistic regression, 1.4 Evaluation). No backend: Python runs in a Web
+multiplication, 0.3 Reductions, 0.4 Reshape & masks) Phase 1 "Machine Learning in NumPy"
+(1.1 Linear regression, 1.2 Gradient descent, 1.3 Logistic regression, 1.4 Evaluation) and
+Phase 2 "Deep Learning in NumPy" (2.1 Neurons and layers, 2.2 Backpropagation, 2.3 Build your
+own autograd, 2.4 Training a neural network). No backend: Python runs in a Web
 Worker with Pyodide (pinned `0.29.4`, from the jsDelivr CDN). Progress is saved in
 LocalStorage (`vlp:progress:v2`; MVP 1's `v1` value is migrated).
 
 Briefs: MVP 1 in [`docs/mvp/`](docs/mvp/README.md), R2 in [`docs/r2/`](docs/r2/README.md),
-R3 in [`docs/r3/`](docs/r3/README.md).
+R3 in [`docs/r3/`](docs/r3/README.md), R5 in [`docs/r5/`](docs/r5/README.md).
 Roadmap, architecture and release plan: [`docs/roadmap/`](docs/roadmap/README.md). Adding
 content: [`docs/authoring.md`](docs/authoring.md).
 
