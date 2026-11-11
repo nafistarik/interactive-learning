@@ -9,6 +9,7 @@ import { usePrefersReducedMotion } from "@/features/visualization/use-reduced-mo
 import { ArrayGrid } from "./ArrayGrid";
 import type { FitChartSpec } from "@/features/visualization/charts";
 
+import { GraphView } from "./GraphView";
 import { LoopView } from "./LoopView";
 import { OperationView } from "./OperationView";
 
@@ -58,6 +59,13 @@ export function FrameVisualizer({
     frame.status === "error" && isLastOperation && operation && !operation.result
       ? frame.error?.message ?? null
       : null;
+  // The largest autograd graph in the namespace: after loss.backward() that is the loss.
+  const graphVariable = frame.variables
+    .filter((variable) => variable.graph)
+    .reduce<(typeof frame.variables)[number] | undefined>(
+      (best, variable) => (!best || (variable.graph?.nodes.length ?? 0) > (best.graph?.nodes.length ?? 0) ? variable : best),
+      undefined,
+    );
   const variableArray = frame.targetName
     ? frame.variables.find((variable) => variable.name === frame.targetName)?.array
     : undefined;
@@ -94,6 +102,10 @@ export function FrameVisualizer({
             speed={speed}
           />
         </>
+      ) : null}
+
+      {!operation && !frame.loop && graphVariable?.graph ? (
+        <GraphView name={graphVariable.name} graph={graphVariable.graph} />
       ) : null}
 
       {!operation && variableArray && frame.targetName ? (

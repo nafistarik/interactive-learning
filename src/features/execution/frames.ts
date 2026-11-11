@@ -17,12 +17,33 @@ export interface ArraySnapshot {
   truncated: boolean;
 }
 
+/** One value in an autograd graph (R5). `data`/`grad` are `null` when not numbers. */
+export interface GraphNode {
+  label: string;
+  data: number | string | null;
+  grad: number | string | null;
+  /** The operation that produced it, e.g. `+`, `*`, `tanh`; empty for inputs. */
+  op: string;
+}
+
+/**
+ * An autograd value's graph: node 0 is the value itself, edges are `[input, output]` node
+ * indexes. At most 40 nodes; `truncated` says more existed.
+ */
+export interface AutogradGraph {
+  nodes: GraphNode[];
+  edges: [number, number][];
+  truncated: boolean;
+}
+
 /** One variable in the namespace after a statement. Arrays carry `array`, others `repr`. */
 export interface VariableSnapshot {
   name: string;
   type: string;
   array?: ArraySnapshot;
   repr?: string;
+  /** For values with `data`, `grad` and `_prev` (an autograd value). */
+  graph?: AutogradGraph;
 }
 
 /** Operators of a `binary` step: element-wise arithmetic and comparisons. */

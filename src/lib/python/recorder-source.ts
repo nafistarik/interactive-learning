@@ -84,11 +84,69 @@ def snapshot(value):
     }
 
 
+MAX_GRAPH_NODES = 40
+
+
+def is_graph_node(value):
+    """An autograd value in the R5 convention: has data, grad and _prev (its inputs)."""
+    return not isinstance(value, (np.ndarray, type)) and all(hasattr(value, attr) for attr in ("data", "grad", "_prev"))
+
+
+def graph_number(value):
+    """A node's data or grad as a JSON number (NaN/inf as strings), or None if not a number."""
+    if isinstance(value, (int, float, np.integer, np.floating)) and not isinstance(value, bool):
+        return json_value(float(value))
+    return None
+
+
+def graph_snapshot(root):
+    """The graph reachable from root through _prev, breadth first, at most MAX_GRAPH_NODES nodes.
+
+    Node 0 is the root. Edges are [input index, output index].
+    """
+    order = []
+    index = {}
+    queue = [root]
+    while queue and len(order) < MAX_GRAPH_NODES:
+        node = queue.pop(0)
+        if id(node) in index:
+            continue
+        index[id(node)] = len(order)
+        order.append(node)
+        queue.extend(list(getattr(node, "_prev", ()) or ()))
+    nodes = [
+        {
+            "label": str(getattr(node, "label", "") or ""),
+            "data": graph_number(getattr(node, "data", None)),
+            "grad": graph_number(getattr(node, "grad", None)),
+            "op": str(getattr(node, "_op", "") or ""),
+        }
+        for node in order
+    ]
+    edges = [
+        [index[id(child)], index[id(node)]]
+        for node in order
+        for child in list(getattr(node, "_prev", ()) or ())
+        if id(child) in index
+    ]
+    return {"nodes": nodes, "edges": edges, "truncated": any(id(item) not in index for item in queue)}
+
+
 def variable_snapshot(name, value):
-    """One namespace entry: arrays with their snapshot, everything else with its repr."""
+    """One namespace entry: arrays with their snapshot, autograd values with their graph,
+    everything else with its repr."""
     if isinstance(value, np.ndarray):
         return {"name": name, "type": "ndarray", "array": snapshot(value)}
-    return {"name": name, "type": type(value).__name__, "repr": repr(value)[:MAX_REPR]}
+    entry = {"name": name, "type": type(value).__name__, "repr": repr(value)[:MAX_REPR]}
+    if is_graph_node(value):
+        if entry["repr"].startswith("<"):
+            # The default repr is an address; data and grad are what the learner needs.
+            entry["repr"] = type(value).__name__ + "(data=" + str(value.data) + ", grad=" + str(value.grad) + ")"
+        try:
+            entry["graph"] = graph_snapshot(value)
+        except Exception:
+            pass
+    return entry
 
 
 def variables_of(namespace):
@@ -139,8 +197,16 @@ def attempt(step, compute, shapes, steps):
     return result
 
 
+DRAWABLE = (np.ndarray, np.generic, int, float, bool, list, tuple)
+
+
 def binary(kind, symbol, function, left, right, left_node, right_node, steps):
-    """A two-operand step: element-wise arithmetic, a comparison, or a matrix product."""
+    """A two-operand step: element-wise arithmetic, a comparison, or a matrix product.
+
+    Operands the array views cannot draw (e.g. autograd Values) are computed without a step.
+    """
+    if not (isinstance(left, DRAWABLE) and isinstance(right, DRAWABLE)):
+        return function(left, right)
     left_snapshot = snapshot(left)
     right_snapshot = snapshot(right)
     step = {
