@@ -90,6 +90,10 @@ backticks for inline code; no emoji, no hype, no invented numbers.
   objects is not an array step, so end a playground with a recorded NumPy line.
 - An operation that should fail on purpose (to show the explanation) may sit inside a
   larger expression, including under a unary minus.
+- **Heatmaps** (R6): `chart: { kind: "heatmap", matrix: "weights", rowLabels: [...],
+  colLabels: [...] }` draws a recorded 2D array (≤ 8 × 8, numeric). In a loop it follows the
+  selected iteration. Loops watch arrays changed in place (`V[s] = …`, `Q[s, a] += …`) as well
+  as assigned names. Don't heatmap a matrix holding `-inf` (e.g. masked scores): it won't draw.
 
 ## 3. An exercise
 

@@ -12,7 +12,8 @@ the full curriculum is written down (see [open decisions](04-open-decisions.md))
 | R3 | Phase 1: ML foundations in NumPy | Loop-aware recording, charts from real data | Done 2026-11-11 ([brief](../r3/README.md)) |
 | R4 | Accounts and sync (only if learners return) | Thin backend, progress merge | |
 | R5 | Phase 2: Deep learning foundations | NumPy autograd in the browser; PyTorch decision | Done 2026-11-12 ([brief](../r5/README.md)) |
-| Later | Transformers, RL, Agentic AI, AI hints, desktop | | |
+| R6 | Phase 3 Transformers and Phase 4 RL, in NumPy | Heatmap chart, in-place loop tracking | Done 2026-11-13 ([brief](../r6/README.md)) |
+| Later | Agentic AI (needs the AI decision), AI hints, accounts, desktop | | |
 
 ### Does a release need a backend?
 
@@ -132,6 +133,15 @@ gradients. PyTorch stays out (decision 5). Also fixed: no lesson scrolls sideway
   builds (micrograd-style), training an MLP — all in the browser.
 - PyTorch only if the decision after R3 says so: either an isolated server sandbox or
   the desktop app with a local Python sidecar.
+
+## R6 — Phase 3 Transformers and Phase 4 RL
+
+**Done 2026-11-13.** Phase 3 (3.1 Tokens and Embeddings, 3.2 Attention, 3.3 The Transformer
+Block, 3.4 A Tiny Language Model) and Phase 4 (4.1 Agents and Environments, 4.2 Values and the
+Bellman Equation, 4.3 Q-Learning, 4.4 Policies in Practice) are open, all in NumPy in the
+browser. New: a heatmap chart (attention weights, bigram probabilities, value grids that
+fill in sweep by sweep), `np.sin`/`np.cos` recorded, and loops follow arrays changed in place
+(`Q[s, a] += …`).
 
 ## Later
 
