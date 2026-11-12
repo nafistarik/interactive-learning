@@ -367,6 +367,9 @@ def watched_names(loop):
         elif isinstance(target, (ast.Tuple, ast.List)):
             for element in target.elts:
                 add(element)
+        elif isinstance(target, ast.Subscript):
+            # Q[s, a] += ... changes Q in place: watch Q.
+            add(target.value)
 
     if isinstance(loop, ast.For):
         add(loop.target)

@@ -72,6 +72,20 @@ describe("recording loops and ufuncs", () => {
     expect(gaps.size).toBe(1);
   });
 
+  it("watches arrays the loop changes in place (Q[s, a] += ...)", () => {
+    const loop = frames("import numpy as np\nQ = np.zeros((2, 2))\nfor step in range(3):\n    Q[step % 2, 1] += 1.0").at(-1)?.loop;
+    expect(loop?.watched).toEqual(["step", "Q"]);
+    const values = loop?.iterations.map((item) => {
+      const value = item.values.Q;
+      return value && "array" in value ? value.array.values : null;
+    });
+    expect(values).toEqual([
+      [0, 1, 0, 0],
+      [0, 1, 0, 1],
+      [0, 2, 0, 1],
+    ]);
+  });
+
   it("keeps break and continue working", () => {
     const loop = frames("seen = []\nfor i in range(10):\n    if i % 2:\n        continue\n    if i > 6:\n        break\n    seen.append(i)").at(-1);
     expect(loop?.variables.find((variable) => variable.name === "seen")?.repr).toBe("[0, 2, 4, 6]");
