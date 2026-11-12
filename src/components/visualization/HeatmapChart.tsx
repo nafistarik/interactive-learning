@@ -23,8 +23,8 @@ export function HeatmapChart({
 }: {
   name: string;
   snapshot: ArraySnapshot;
-  rowLabels?: string[];
-  colLabels?: string[];
+  rowLabels?: readonly string[];
+  colLabels?: readonly string[];
 }) {
   const values = numericValues(snapshot);
   const [rows, cols] = snapshot.shape;

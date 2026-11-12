@@ -17,6 +17,14 @@ import { NEURAL_NETWORKS_MODULE } from "./modules/neural-networks/module";
 import { BACKPROPAGATION_MODULE } from "./modules/backpropagation/module";
 import { AUTOGRAD_MODULE } from "./modules/autograd/module";
 import { TRAINING_NETWORKS_MODULE } from "./modules/training-networks/module";
+import { EMBEDDINGS_MODULE } from "./modules/embeddings/module";
+import { ATTENTION_MODULE } from "./modules/attention/module";
+import { TRANSFORMER_BLOCK_MODULE } from "./modules/transformer-block/module";
+import { LANGUAGE_MODEL_MODULE } from "./modules/language-model/module";
+import { RL_BASICS_MODULE } from "./modules/rl-basics/module";
+import { VALUE_ITERATION_MODULE } from "./modules/value-iteration/module";
+import { Q_LEARNING_MODULE } from "./modules/q-learning/module";
+import { POLICIES_MODULE } from "./modules/policies/module";
 
 /** Every module, in learning order, including ones still in development. */
 export const MODULES: readonly ModuleDef[] = [
@@ -32,6 +40,14 @@ export const MODULES: readonly ModuleDef[] = [
   BACKPROPAGATION_MODULE,
   AUTOGRAD_MODULE,
   TRAINING_NETWORKS_MODULE,
+  EMBEDDINGS_MODULE,
+  ATTENTION_MODULE,
+  TRANSFORMER_BLOCK_MODULE,
+  LANGUAGE_MODEL_MODULE,
+  RL_BASICS_MODULE,
+  VALUE_ITERATION_MODULE,
+  Q_LEARNING_MODULE,
+  POLICIES_MODULE,
 ];
 
 /** The roadmap. Only phase 0 has modules so far. */
@@ -47,8 +63,16 @@ export const PHASES: readonly Phase[] = [
     title: "Deep Learning in NumPy",
     modules: ["neural-networks", "backpropagation", "autograd", "training-networks"],
   },
-  { number: 3, title: "Transformers", modules: [] },
-  { number: 4, title: "Reinforcement Learning", modules: [] },
+  {
+    number: 3,
+    title: "Transformers in NumPy",
+    modules: ["embeddings", "attention", "transformer-block", "language-model"],
+  },
+  {
+    number: 4,
+    title: "Reinforcement Learning in NumPy",
+    modules: ["rl-basics", "value-iteration", "q-learning", "policies"],
+  },
   { number: 5, title: "Agentic AI", modules: [] },
 ];
 

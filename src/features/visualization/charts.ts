@@ -19,8 +19,8 @@ export interface FitChartSpec {
 export interface HeatmapChartSpec {
   kind: "heatmap";
   matrix: string;
-  rowLabels?: string[];
-  colLabels?: string[];
+  rowLabels?: readonly string[];
+  colLabels?: readonly string[];
 }
 
 /** Any chart an exercise or demo can declare. */
