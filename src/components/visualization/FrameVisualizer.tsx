@@ -7,9 +7,10 @@ import { buildStages } from "@/features/visualization/broadcast";
 import { usePrefersReducedMotion } from "@/features/visualization/use-reduced-motion";
 
 import { ArrayGrid } from "./ArrayGrid";
-import type { FitChartSpec } from "@/features/visualization/charts";
+import type { ChartSpec } from "@/features/visualization/charts";
 
 import { GraphView } from "./GraphView";
+import { HeatmapChart } from "./HeatmapChart";
 import { LoopView } from "./LoopView";
 import { OperationView } from "./OperationView";
 
@@ -36,7 +37,7 @@ export function FrameVisualizer({
   frame: ExecutionFrame;
   paused: boolean;
   speed: number;
-  chart?: FitChartSpec;
+  chart?: ChartSpec;
 }) {
   const stages = useMemo(() => buildStages(frame.operations), [frame.operations]);
   const reducedMotion = usePrefersReducedMotion();
@@ -66,6 +67,8 @@ export function FrameVisualizer({
       (best, variable) => (!best || (variable.graph?.nodes.length ?? 0) > (best.graph?.nodes.length ?? 0) ? variable : best),
       undefined,
     );
+  const heatArray =
+    chart?.kind === "heatmap" ? frame.variables.find((variable) => variable.name === chart.matrix)?.array : undefined;
   const variableArray = frame.targetName
     ? frame.variables.find((variable) => variable.name === frame.targetName)?.array
     : undefined;
@@ -102,6 +105,10 @@ export function FrameVisualizer({
             speed={speed}
           />
         </>
+      ) : null}
+
+      {!frame.loop && chart?.kind === "heatmap" && heatArray ? (
+        <HeatmapChart name={chart.matrix} snapshot={heatArray} rowLabels={chart.rowLabels} colLabels={chart.colLabels} />
       ) : null}
 
       {!operation && !frame.loop && graphVariable?.graph ? (

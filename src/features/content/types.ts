@@ -4,7 +4,7 @@
  */
 
 import type { Exercise } from "@/features/validation/types";
-import type { FitChartSpec } from "@/features/visualization/charts";
+import type { ChartSpec } from "@/features/visualization/charts";
 
 /** Interactive demos a lesson can embed. Each id maps to one component. */
 export type DemoId =
@@ -54,8 +54,8 @@ export interface PlaygroundDemo {
   template: string;
   /** Variables to draw when the last statement has no recorded operation. */
   show?: string[];
-  /** A fit chart for a training loop (R3). */
-  chart?: FitChartSpec;
+  /** A chart for the result: a fit chart for training loops (R3) or a heatmap (R6). */
+  chart?: ChartSpec;
 }
 
 /** A titled part of a lesson's theory. */

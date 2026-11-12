@@ -96,7 +96,7 @@ export interface ReshapeStep extends OneOperand {
 /** An element-wise NumPy function of one array, e.g. `np.exp(z)`. */
 export interface UfuncStep extends OneOperand {
   kind: "ufunc";
-  fn: "exp" | "log" | "sqrt" | "abs" | "square" | "tanh" | "sign";
+  fn: "exp" | "log" | "sqrt" | "abs" | "square" | "tanh" | "sign" | "sin" | "cos";
 }
 
 /** One recorded sub-step of a statement, in evaluation order. */

@@ -93,6 +93,11 @@ describe("recording loops and ufuncs", () => {
     expect(bad?.operations.map((step) => step.kind)).toEqual(["matmul"]);
   });
 
+  it("records np.sin and np.cos for positional encodings", () => {
+    const frame = frames("import numpy as np\npos = np.arange(3) * 1.0\npe = np.sin(pos) + np.cos(pos)").at(-1);
+    expect(frame?.operations.map((step) => (step.kind === "ufunc" ? step.fn : step.kind))).toEqual(["sin", "cos", "binary"]);
+  });
+
   it("records np.exp as a ufunc step inside the sigmoid", () => {
     const frame = frames("import numpy as np\nz = np.array([-1.0, 0.0, 2.0])\np = 1 / (1 + np.exp(-z))").at(-1);
     expect(frame?.operations.map((step) => step.kind)).toEqual(["ufunc", "binary", "binary"]);

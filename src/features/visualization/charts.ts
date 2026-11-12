@@ -11,6 +11,21 @@ export interface FitChartSpec {
   prediction: string;
 }
 
+/**
+ * A heatmap declared by lesson data or an exercise (R6): a recorded 2D array (≤ 8 × 8) drawn as
+ * shaded cells — at the selected iteration in a loop frame, else its final value. Labels are
+ * authored strings (tokens, states).
+ */
+export interface HeatmapChartSpec {
+  kind: "heatmap";
+  matrix: string;
+  rowLabels?: string[];
+  colLabels?: string[];
+}
+
+/** Any chart an exercise or demo can declare. */
+export type ChartSpec = FitChartSpec | HeatmapChartSpec;
+
 /** One point of a series. */
 export interface ChartPoint {
   x: number;

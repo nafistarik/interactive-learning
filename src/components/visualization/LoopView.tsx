@@ -9,12 +9,13 @@ import {
   numericWatched,
   watchedArray,
   type ChartPoint,
-  type FitChartSpec,
+  type ChartSpec,
 } from "@/features/visualization/charts";
 import { useCycle } from "@/features/visualization/use-cycle";
 
 import { ArrayGrid } from "./ArrayGrid";
 import { FitChart } from "./FitChart";
+import { HeatmapChart } from "./HeatmapChart";
 import { LineChart } from "./LineChart";
 
 /** Time to play through all recorded iterations at 1×. */
@@ -47,7 +48,7 @@ function steadyArrays(loop: LoopRecord): string[] {
  * @param props.playing - Whether to play (not paused, motion allowed).
  * @param props.reducedMotion - Start at the last iteration and do not move.
  * @param props.speed - Playback speed.
- * @param props.chart - A fit chart to draw, from the exercise or demo.
+ * @param props.chart - A fit chart or heatmap to draw, from the exercise or demo.
  */
 export function LoopView({
   frame,
@@ -62,7 +63,7 @@ export function LoopView({
   playing: boolean;
   reducedMotion: boolean;
   speed: number;
-  chart?: FitChartSpec;
+  chart?: ChartSpec;
 }) {
   const count = loop.iterations.length;
   const [selected, setSelected] = useState<number | null>(null);
@@ -83,9 +84,11 @@ export function LoopView({
     const snapshot = frame.variables.find((variable) => variable.name === name)?.array;
     return snapshot ? numericValues(snapshot) : null;
   };
-  const fit = chart
-    ? { x: finalArray(chart.x), y: finalArray(chart.y), prediction: watchedArray(current.values[chart.prediction]) }
-    : null;
+  const fit =
+    chart?.kind === "fit"
+      ? { x: finalArray(chart.x), y: finalArray(chart.y), prediction: watchedArray(current.values[chart.prediction]) }
+      : null;
+  const heat = chart?.kind === "heatmap" ? current.values[chart.matrix] : undefined;
 
   /** Selects the recorded iteration closest to the given iteration number. */
   function selectIteration(iteration: number) {
@@ -123,8 +126,12 @@ export function LoopView({
         </label>
       </div>
 
-      {fit && fit.x && fit.y && chart ? (
+      {fit && fit.x && fit.y && chart?.kind === "fit" ? (
         <FitChart x={fit.x} y={fit.y} prediction={fit.prediction} names={chart} />
+      ) : null}
+
+      {chart?.kind === "heatmap" && heat && "array" in heat ? (
+        <HeatmapChart name={`${chart.matrix} at iteration ${current.iteration}`} snapshot={heat.array} rowLabels={chart.rowLabels} colLabels={chart.colLabels} />
       ) : null}
 
       {charts.length ? (

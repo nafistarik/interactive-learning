@@ -40,7 +40,7 @@ COMPARATORS = {
 REDUCERS = ("sum", "mean", "max", "min", "std")
 MATMULS = ("dot", "matmul")
 RESHAPERS = ("reshape", "transpose")
-UFUNCS = ("exp", "log", "sqrt", "abs", "square", "tanh", "sign")
+UFUNCS = ("exp", "log", "sqrt", "abs", "square", "tanh", "sign", "sin", "cos")
 RECORDED_CALLS = REDUCERS + MATMULS + RESHAPERS + UFUNCS
 
 # Loops (R3): at most this many iterations are kept; longer loops are sampled evenly.

@@ -1,4 +1,4 @@
-import type { FitChartSpec } from "@/features/visualization/charts";
+import type { ChartSpec } from "@/features/visualization/charts";
 
 /**
  * One run of the learner's code for validation: setup code run before it, and reference
@@ -47,8 +47,8 @@ export interface Exercise {
   hint: string;
   /** `bug-hunt` starts from wrong code the learner must fix. Default `build`. */
   type?: "build" | "bug-hunt";
-  /** A fit chart for the training loop in Practice (R3). */
-  chart?: FitChartSpec;
+  /** A chart for Practice: a fit chart for training loops (R3) or a heatmap (R6). */
+  chart?: ChartSpec;
   runs: ValidationRun[];
   checks: ValidationCheck[];
   /** A correct answer, used only by the tests. Never shown to the learner. */

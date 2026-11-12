@@ -18,6 +18,8 @@ const MEANING: Record<UfuncStep["fn"], string> = {
   square: "each value times itself",
   tanh: "the hyperbolic tangent of each value, between -1 and 1",
   sign: "-1, 0 or 1 for each value's sign",
+  sin: "the sine of each value (in radians), between -1 and 1",
+  cos: "the cosine of each value (in radians), between -1 and 1",
 };
 
 /**
