@@ -16,7 +16,7 @@ export const TRANSFORMER_BLOCK_MODULE: ModuleDef = {
     "Build sinusoidal positional encodings and explain why attention needs them",
     "Run a full transformer block: attention and a feed-forward layer, each with a residual connection and layer normalization",
   ],
-  available: false,
+  available: true,
   lessons: [
     { id: "01", title: "Multi-Head Attention" },
     { id: "02", title: "Residual Connections" },

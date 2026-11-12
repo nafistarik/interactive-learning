@@ -15,7 +15,7 @@ export const Q_LEARNING_MODULE: ModuleDef = {
     "Apply the Q-learning update to one transition and explain its target",
     "Train an agent over many episodes, record its learning curve and follow the learned policy to the goal",
   ],
-  available: false,
+  available: true,
   lessons: [
     { id: "01", title: "Action Values and the Q-Table" },
     { id: "02", title: "Epsilon-Greedy Exploration" },

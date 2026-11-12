@@ -16,7 +16,7 @@ export const RL_BASICS_MODULE: ModuleDef = {
     "Run an episode with a fixed or seeded random policy and count the visits to each cell",
     "Compute discounted returns, forward with gamma ** t and backwards with G = r + gamma * G",
   ],
-  available: false,
+  available: true,
   lessons: [
     { id: "01", title: "States, Actions and Rewards" },
     { id: "02", title: "A Grid World in NumPy" },

@@ -16,7 +16,7 @@ export const VALUE_ITERATION_MODULE: ModuleDef = {
     "Extract the greedy policy with np.argmax over the four action values and draw it as arrows",
     "Follow the greedy policy from a start state to the goal",
   ],
-  available: false,
+  available: true,
   lessons: [
     { id: "01", title: "State Values" },
     { id: "02", title: "The Bellman Update" },

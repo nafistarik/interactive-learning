@@ -16,7 +16,7 @@ export const POLICIES_MODULE: ModuleDef = {
     "Explain how the learning rate and the discount change what Q-learning learns",
     "Count Q-table sizes and explain why large or continuous state spaces need function approximation",
   ],
-  available: false,
+  available: true,
   lessons: [
     { id: "01", title: "Evaluating a Policy" },
     { id: "02", title: "Exploration versus Exploitation" },

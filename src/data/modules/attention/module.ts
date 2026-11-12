@@ -16,7 +16,7 @@ export const ATTENTION_MODULE: ModuleDef = {
     "Read an attention weight as how much one token looks at another",
     "Write self-attention as one function from X to out = weights @ V and follow its shapes",
   ],
-  available: false,
+  available: true,
   lessons: [
     { id: "01", title: "Queries, Keys and Values" },
     { id: "02", title: "Scores and Scaling" },

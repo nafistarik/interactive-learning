@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 import type { ArraySnapshot } from "@/features/execution/frames";
 import { numericValues } from "@/features/visualization/broadcast";
 import { formatChartValue } from "@/features/visualization/charts";
@@ -26,6 +28,8 @@ export function HeatmapChart({
   rowLabels?: readonly string[];
   colLabels?: readonly string[];
 }) {
+  // The name can hold spaces ("V at iteration 3"), which break url(#id); useId is unique and safe once cleaned.
+  const gradientId = `heat-${useId().replace(/[^a-zA-Z0-9_-]/g, "")}`;
   const values = numericValues(snapshot);
   const [rows, cols] = snapshot.shape;
   if (!values || snapshot.shape.length !== 2 || rows > MAX || cols > MAX) {
@@ -51,12 +55,12 @@ export function HeatmapChart({
           {formatChartValue(min)}
           <svg width="60" height="8" aria-hidden>
             <defs>
-              <linearGradient id={`heat-${name}`}>
+              <linearGradient id={gradientId}>
                 <stop offset="0" stopColor="var(--chart-1)" stopOpacity="0.08" />
                 <stop offset="1" stopColor="var(--chart-1)" stopOpacity="0.9" />
               </linearGradient>
             </defs>
-            <rect width="60" height="8" rx="2" fill={`url(#heat-${name})`} />
+            <rect width="60" height="8" rx="2" fill={`url(#${gradientId})`} />
           </svg>
           {formatChartValue(max)}
         </span>

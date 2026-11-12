@@ -16,7 +16,7 @@ export const EMBEDDINGS_MODULE: ModuleDef = {
     "Compute the cosine similarity of two vectors from the dot product and the norms",
     "Compute a similarity matrix of word vectors with Xn @ Xn.T after normalizing the rows",
   ],
-  available: false,
+  available: true,
   lessons: [
     { id: "01", title: "From Text to Tokens" },
     { id: "02", title: "One-Hot Vectors" },

@@ -16,7 +16,7 @@ export const LANGUAGE_MODEL_MODULE: ModuleDef = {
     "Explain why greedy output falls into repetition loops",
     "Apply a causal mask with np.triu and -np.inf so attention weights never look ahead",
   ],
-  available: false,
+  available: true,
   lessons: [
     { id: "01", title: "Next-Token Prediction" },
     { id: "02", title: "Bigram Probabilities" },
